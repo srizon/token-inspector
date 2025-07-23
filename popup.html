@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DS-Lint</title>
+    <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Design System Linter</h1>
+    </div>
+    <div id="scanner-state" class="scanner-state">
+        <div class="spinner"></div>
+        <p>Scanning for design violations...</p>
+    </div>
+    <div id="category-tabs" class="category-tabs" style="display: none;">
+        <button class="tab-button active" data-category="all">All</button>
+        <button class="tab-button" data-category="Colors">Colors</button>
+        <button class="tab-button" data-category="Spacing">Spacing</button>
+        <button class="tab-button" data-category="Typography">Typography</button>
+        <button class="tab-button" data-category="Radius">Radius</button>
+    </div>
+    <div id="results-container"></div>
+    <div id="no-results-message" class="no-results" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <p>No hard-coded values found. Great job!</p>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

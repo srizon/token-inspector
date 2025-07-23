@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DS-Lint Panel</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background-color: #f0f2f5;
+            color: #1a1a1a;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        h1 {
+            font-size: 18px;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .scan-button {
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .scan-button:hover {
+            background-color: #0056CC;
+        }
+        
+        .scan-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .scanner-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e4e6eb;
+            border-top: 2px solid #007AFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #results-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .category-section {
+            margin-bottom: 16px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .category-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .category-count {
+            background-color: #e4e6eb;
+            color: #4b4f56;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .results-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .result-item-card {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        
+        .result-item-card:hover {
+            background-color: #f5f8ff;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .item-selector {
+            font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: #0e101a;
+            flex: 1;
+        }
+        
+        .element-count {
+            background-color: #e4e6eb;
+            color: #4b4f56;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+        
+        .item-properties {
+            margin-bottom: 8px;
+        }
+        
+        .property-text {
+            font-size: 12px;
+            color: #606770;
+            line-height: 1.4;
+        }
+        
+        .item-path {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #8a8d91;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .no-results {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            color: #8a8d91;
+        }
+        
+        .no-results svg {
+            margin-bottom: 16px;
+            color: #42b883;
+        }
+        
+        .no-results p {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Design System Linter</h1>
+        <button id="scan-button" class="scan-button">Scan Page</button>
+    </div>
+    
+    <div id="scanner-state" class="scanner-state" style="display: none;">
+        <div class="spinner"></div>
+        <p>Scanning for design violations...</p>
+    </div>
+    
+    <div id="results-container"></div>
+    
+    <div id="no-results-message" class="no-results" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <p>No hard-coded values found. Great job!</p>
+    </div>
+    
+    <script src="panel.js"></script>
+</body>
+</html> 
