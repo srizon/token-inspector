@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Flagged Variables Categorization</title>
+    <style>
+        :root {
+            --white: #ffffff;
+            --black: #000000;
+            --primary-color: #007bff;
+            --font-size-large: 18px;
+            --font-weight-bold: 700;
+            --spacing-large: 24px;
+            --border-radius-medium: 8px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: var(--white);
+            color: var(--black);
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: var(--border-radius-medium);
+        }
+
+        .test-title {
+            font-size: var(--font-size-large);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 15px;
+            padding: var(--spacing-large);
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .flagged-color-test {
+            background-color: var(--white); /* This should be flagged and appear in Colors category */
+            color: var(--black);
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .flagged-typography-test {
+            font-size: var(--font-size-large); /* This should be flagged and appear in Typography category */
+            font-weight: var(--font-weight-bold); /* This should be flagged and appear in Typography category */
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .flagged-spacing-test {
+            margin: var(--spacing-large); /* This should be flagged and appear in Spacing category */
+            padding: var(--spacing-large); /* This should be flagged and appear in Spacing category */
+            border: 1px solid #ccc;
+        }
+
+        .flagged-radius-test {
+            border-radius: var(--border-radius-medium); /* This should be flagged and appear in Radius category */
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+        }
+
+        .non-flagged-test {
+            background-color: var(--primary-color); /* This should NOT be flagged */
+            color: var(--black); /* This should NOT be flagged */
+            font-size: 16px; /* This should NOT be flagged */
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Flagged Variables Categorization</h1>
+    
+    <div class="test-section">
+        <div class="test-title">Elements using flagged variables (should appear in respective categories):</div>
+        
+        <div class="flagged-color-test">
+            This element uses var(--white) for background-color - should appear in Colors category
+        </div>
+        
+        <div class="flagged-typography-test">
+            This element uses var(--font-size-large) and var(--font-weight-bold) - should appear in Typography category
+        </div>
+        
+        <div class="flagged-spacing-test">
+            This element uses var(--spacing-large) for margin and padding - should appear in Spacing category
+        </div>
+        
+        <div class="flagged-radius-test">
+            This element uses var(--border-radius-medium) - should appear in Radius category
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Elements using non-flagged variables (should NOT be flagged):</div>
+        
+        <div class="non-flagged-test">
+            This element uses non-flagged variables - should NOT appear in any category
+        </div>
+    </div>
+
+    <script>
+        console.log('Test Flagged Variables Categorization Page Loaded');
+        console.log('Expected behavior:');
+        console.log('- Elements using var(--white) should appear in Colors category');
+        console.log('- Elements using var(--font-size-large) and var(--font-weight-bold) should appear in Typography category');
+        console.log('- Elements using var(--spacing-large) should appear in Spacing category');
+        console.log('- Elements using var(--border-radius-medium) should appear in Radius category');
+        console.log('- Elements using non-flagged variables should NOT appear in any category');
+    </script>
+</body>
+</html> 

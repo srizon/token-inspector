@@ -11,7 +11,12 @@
             --font-size-base: 16px;
             --border-radius-sm: 4px;
         }
-        
+        body {
+            margin: auto;
+            margin-top: 200px;
+            max-width: 1000px;
+            padding: 50px;
+        }
         .test-element-1 {
             color: var(--text-dark-on-inverse);
         }
@@ -38,6 +43,10 @@
         
         .test-element-7 {
             border-radius: var(--border-radius-sm);
+        }
+
+        .test-element-8 {
+            color: var(--white);
         }
         
         /* These should still be flagged as non-standard */
@@ -89,6 +98,10 @@
     
     <div class="test-element-7">
         This uses: border-radius: var(--border-radius-sm) - should NOT be flagged
+    </div>
+
+    <div class="test-element-8">
+        This uses: color: var(--white) - SHOULD be flagged
     </div>
     
     <hr>

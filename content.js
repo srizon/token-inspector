@@ -6,8 +6,8 @@
 
     // --- Inspector Logic ---
     // This function is defined once and can be called by the persistent listener.
-    window.dsLint.inspectAndHighlight = (elementId) => {
-        // Clear previous highlight
+    window.dsLint.inspectAndHighlight = (elementId, issueData = null) => {
+        // Clear previous highlight and tooltip
         if (window.dsLint.highlightedElement) {
             try {
                 window.dsLint.highlightedElement.style.outline = '';
@@ -15,6 +15,12 @@
                 window.dsLint.highlightedElement.style.backgroundColor = '';
                 window.dsLint.highlightedElement.classList.remove('ds-lint-highlight');
             } catch (e) { /* Element might have been removed */ }
+        }
+        
+        // Remove existing tooltip
+        const existingTooltip = document.querySelector('.ds-lint-tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
         }
 
         // Try to find the element by data attribute first
@@ -37,7 +43,13 @@
                 if (item && item.selector) {
                     try {
                         targetElement = document.querySelector(item.selector);
-                        if (targetElement) break;
+                        if (targetElement) {
+                            // If we found the item in scan results, use its data for the tooltip
+                            if (!issueData) {
+                                issueData = item;
+                            }
+                            break;
+                        }
                     } catch (e) {
                         console.log('Token Inspector: Invalid selector:', item.selector);
                     }
@@ -65,9 +77,101 @@
             targetElement.style.position = 'relative';
             targetElement.classList.add('ds-lint-highlight');
             window.dsLint.highlightedElement = targetElement;
+            
+            // Show tooltip if we have issue data
+            if (issueData) {
+                window.dsLint.showTooltip(targetElement, issueData);
+            }
         } else {
             console.log('Token Inspector: Could not find element with ID:', elementId);
         }
+    };
+
+    // Function to show tooltip with issue details
+    window.dsLint.showTooltip = (element, issueData) => {
+        // Remove any existing tooltip
+        const existingTooltip = document.querySelector('.ds-lint-tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+
+        // Create tooltip element
+        const tooltip = document.createElement('div');
+        tooltip.className = 'ds-lint-tooltip';
+        tooltip.innerHTML = `<span class="property">${issueData.property}</span>: <span class="value">${issueData.value}</span>`;
+
+        // Add tooltip styles
+        tooltip.style.cssText = `
+            position: fixed;
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            z-index: 10000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            white-space: nowrap;
+        `;
+
+        // Style the property (blue)
+        const propertySpan = tooltip.querySelector('.property');
+        propertySpan.style.cssText = `
+            color: #9cdcfe;
+            font-weight: 500;
+        `;
+
+        // Style the value (orange)
+        const valueSpan = tooltip.querySelector('.value');
+        valueSpan.style.cssText = `
+            color: #ce9178;
+        `;
+
+        // Add to document
+        document.body.appendChild(tooltip);
+
+        // Position tooltip
+        const positionTooltip = () => {
+            const rect = element.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            // Position at top-left corner of the element
+            let top = rect.top - tooltipRect.height - 8;
+            let left = rect.left;
+            
+            // If tooltip would go off the top, position below
+            if (top < 10) {
+                top = rect.bottom + 8;
+            }
+            
+            // If tooltip would go off the left, adjust
+            if (left < 10) {
+                left = 10;
+            }
+            
+            // If tooltip would go off the right, adjust
+            if (left + tooltipRect.width > window.innerWidth - 10) {
+                left = window.innerWidth - tooltipRect.width - 10;
+            }
+            
+            tooltip.style.top = top + 'px';
+            tooltip.style.left = left + 'px';
+        };
+
+        // Position initially
+        positionTooltip();
+
+        // Reposition on window resize
+        const resizeHandler = () => positionTooltip();
+        window.addEventListener('resize', resizeHandler);
+
+        // Store reference for cleanup
+        window.dsLint.currentTooltip = {
+            element: tooltip,
+            resizeHandler: resizeHandler
+        };
     };
 
     // Initialize the content script
@@ -87,7 +191,7 @@
                 console.log('Token Inspector: Responding to ping');
                 sendResponse({ success: true, message: 'Content script is ready' });
             } else if (request.action === 'inspectElement') {
-                window.dsLint.inspectAndHighlight(request.elementId);
+                window.dsLint.inspectAndHighlight(request.elementId, request.issueData);
                 sendResponse({ success: true });
             } else if (request.action === 'runScan') {
                 console.log('Token Inspector: Running scan...');
@@ -146,6 +250,18 @@
             } catch (e) { /* Element might have been removed */ }
             window.dsLint.highlightedElement = null;
         }
+        
+        // Remove tooltip
+        const existingTooltip = document.querySelector('.ds-lint-tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+        
+        // Clean up tooltip event listeners
+        if (window.dsLint.currentTooltip) {
+            window.removeEventListener('resize', window.dsLint.currentTooltip.resizeHandler);
+            window.dsLint.currentTooltip = null;
+        }
     };
 
     // Clear highlight when user clicks elsewhere or page reloads
@@ -161,7 +277,7 @@
 
     // --- Main Scan Function ---
     // This runs every time the content script is injected.
-    window.dsLint.runScan = function() {
+    window.dsLint.runScan = async function() {
         console.log('Token Inspector Content Script: runScan called');
         
         // 1. Cleanup old state from any previous scans
@@ -181,7 +297,7 @@
 
         // 2. Run the optimized scan
         console.log('Token Inspector Content Script: Running optimized scan...');
-        const { findAndMarkElementsUsingVars, findHardcodedValues } = setupOptimizedScanner();
+        const { findAndMarkElementsUsingVars, findHardcodedValues } = await setupOptimizedScanner();
         findAndMarkElementsUsingVars();
         const finalResults = findHardcodedValues();
 
@@ -211,8 +327,10 @@
     
     // --- Optimized Scanner Setup ---
     function setupOptimizedScanner() {
+        return new Promise((resolve, reject) => {
         const elementsUsingVar = new Map();
         let elementCounter = 0;
+        let flaggedVariables = [];
         
         // Cache for expensive operations
         const selectorCache = new Map();
@@ -354,15 +472,33 @@
         // Process styles for a single element
         function processElementStyles(element, style, results) {
             Object.keys(propertiesToCheck).forEach(property => {
-                const value = style.getPropertyValue(property);
-                if (value && value.trim() && 
-                    !value.startsWith('var(--') && 
-                    !value.startsWith('inherit') && 
-                    !value.startsWith('initial') &&
-                    value !== 'transparent' && 
-                    value !== 'currentColor') {
+                const value = style.getPropertyValue(property).trim(); // Trim whitespace
+                
+                // Skip empty or inherited values
+                if (!value || value.startsWith('inherit') || value.startsWith('initial') || value === 'transparent' || value === 'currentColor') {
+                    return;
+                }
+
+                console.log(`Token Inspector: Processing element <${element.tagName.toLowerCase()}>, property: ${property}, value: ${value}`);
+
+                const propertyInfo = propertiesToCheck[property];
+                let shouldFlag = false;
+                let category = '';
+                let flaggedValue = value;
+
+                if (value.startsWith('var(--')) {
+                    // This is a CSS variable
+                    addVarUsage(element, property);
                     
-                    // Try to get the original value format for colors
+                    console.log('Token Inspector: Checking variable:', value, 'against flagged list:', flaggedVariables);
+                    if (flaggedVariables.includes(value)) {
+                        console.log('Token Inspector: MATCH FOUND! Flagging variable:', value);
+                        shouldFlag = true;
+                        category = propertyInfo.category; // Use the property's natural category instead of "Flagged Variables"
+                        flaggedValue = value;
+                    }
+                } else {
+                    // This is a potential hardcoded value
                     let originalValue = value;
                     if (property.includes('color')) {
                         if (value.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)) {
@@ -370,114 +506,59 @@
                             const r = parseInt(rgbMatch[1]);
                             const g = parseInt(rgbMatch[2]);
                             const b = parseInt(rgbMatch[3]);
-                            
-                            const toHex = (n) => {
-                                const hex = n.toString(16);
-                                return hex.length === 1 ? '0' + hex : hex;
-                            };
-                            
-                            const hexColor = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-                            originalValue = hexColor;
-                        } else if (value.match(/^rgba\([^)]+\)$/)) {
-                            originalValue = value;
-                        } else {
-                            originalValue = value;
+                            const toHex = (n) => { const hex = n.toString(16); return hex.length === 1 ? '0' + hex : hex; };
+                            originalValue = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
                         }
                     }
-                    
-                    const propertyInfo = propertiesToCheck[property];
-                    let shouldFlag = false;
-                    let category = '';
-                    
-                    // Check for hardcoded colors
-                    if (property.includes('color') && (
-                        value.match(/^#[0-9a-fA-F]{3,6}$/) ||
-                        value.match(/^rgb\([^)]+\)$/) ||
-                        value.match(/^rgba\([^)]+\)$/) ||
-                        value.match(/^hsl\([^)]+\)$/) ||
-                        value.match(/^hsla\([^)]+\)$/)
-                    )) {
-                        if (value !== 'rgba(0, 0, 0, 0)' &&
-                            value !== 'rgb(0, 0, 0)' &&
-                            value !== 'rgb(255, 255, 255)' &&
-                            value !== 'rgba(255, 255, 255, 1)' &&
-                            value !== '#000000' &&
-                            value !== '#ffffff' &&
-                            value !== '#000' &&
-                            value !== '#fff') {
+
+                    if (property.includes('color') && (value.match(/^#[0-9a-fA-F]{3,6}$/) || value.match(/^rgb/) || value.match(/^hsl/))) {
+                        if (value !== 'rgba(0, 0, 0, 0)' && value !== 'rgb(0, 0, 0)' && value !== 'rgb(255, 255, 255)' && value !== 'rgba(255, 255, 255, 1)' && value !== '#000000' && value !== '#ffffff' && value !== '#000' && value !== '#fff') {
                             shouldFlag = true;
                             category = 'Colors';
+                            flaggedValue = originalValue;
                         }
-                    }
-                    // Check for hardcoded spacing values
-                    else if (property.includes('margin') || property.includes('padding')) {
-                        if ((value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) && value !== '0px') {
+                    } else if (property.includes('margin') || property.includes('padding')) {
+                        if (value.match(/^\d+(\.\d+)?px$/) && value !== '0px') {
                             shouldFlag = true;
                             category = 'Spacing';
                         }
-                    }
-                    // Check for hardcoded typography values
-                    else if (property.includes('font-size') || property.includes('font-weight') || property.includes('line-height')) {
-                        let shouldFlagTypography = false;
-                        
-                        if (property.includes('font-size')) {
-                            if (value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) {
-                                shouldFlagTypography = true;
-                            }
-                        } else if (property.includes('font-weight')) {
-                            if (value.match(/^\d+$/)) {
-                                shouldFlagTypography = true;
-                            }
-                        } else if (property.includes('line-height')) {
-                            if (value.match(/^\d+\.\d+$/) || 
-                                value.match(/^\d+em$/) || 
-                                value.match(/^\d+\.\d+em$/) || 
-                                value.match(/^\d+%$/) || 
-                                value.match(/^\d+\.\d+%$/) || 
-                                value.match(/^\d+px$/) || 
-                                value.match(/^\d+\.\d+px$/)) {
-                                shouldFlagTypography = true;
-                            }
-                        }
-                        
-                        if (shouldFlagTypography) {
+                    } else if (property.includes('font-size') || property.includes('font-weight') || property.includes('line-height')) {
+                        if ((property.includes('font-size') && value.match(/^\d+(\.\d+)?px$/)) || (property.includes('font-weight') && value.match(/^\d+$/)) || (property.includes('line-height') && (value.match(/^\d/) || value.match(/^\d/)))) {
                             shouldFlag = true;
                             category = 'Typography';
                         }
-                    }
-                    // Check for hardcoded border radius values
-                    else if (property.includes('border-radius')) {
-                        if (value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) {
+                    } else if (property.includes('border-radius')) {
+                        if (value.match(/^\d+(\.\d+)?px$/)) {
                             shouldFlag = true;
                             category = 'Radius';
                         }
                     }
+                }
+
+                // If a value was flagged (either variable or hardcoded), add it to the results.
+                if (shouldFlag) {
+                    console.log(`Token Inspector: Flagging element for ${category}: `, { selector: getCssSelector(element), property, value: flaggedValue });
                     
-                    if (shouldFlag) {
-                        const elementId = `ds-lint-${++elementCounter}`;
-                        element.setAttribute('data-ds-lint-id', elementId);
-                        
-                        // Store mapping for highlighting
-                        window.dsLint.elementMap.set(elementId, {
-                            selector: getCssSelector(element),
-                            path: getBreadcrumbs(element)
-                        });
-                        
-                        if (!window.dsLint.results) window.dsLint.results = {};
-                        if (!window.dsLint.results[category]) {
-                            window.dsLint.results[category] = [];
-                        }
-                        
-                        window.dsLint.results[category].push({
-                            elementId: elementId,
-                            selector: getCssSelector(element),
-                            property: propertyInfo.name,
-                            value: originalValue,
-                            path: getBreadcrumbs(element)
-                        });
-                    } else if (value && value.startsWith('var(--')) {
-                        addVarUsage(element, property);
+                    const elementId = `ds-lint-${++elementCounter}`;
+                    element.setAttribute('data-ds-lint-id', elementId);
+                    
+                    window.dsLint.elementMap.set(elementId, {
+                        selector: getCssSelector(element),
+                        path: getBreadcrumbs(element)
+                    });
+                    
+                    if (!window.dsLint.results) window.dsLint.results = {};
+                    if (!window.dsLint.results[category]) {
+                        window.dsLint.results[category] = [];
                     }
+                    
+                    window.dsLint.results[category].push({
+                        elementId: elementId,
+                        selector: getCssSelector(element),
+                        property: propertyInfo.name,
+                        value: flaggedValue,
+                        path: getBreadcrumbs(element)
+                    });
                 }
             });
         }
@@ -513,8 +594,19 @@
             return window.dsLint.results;
         }
 
-        return { findAndMarkElementsUsingVars, findHardcodedValues };
-    }
+        // Fetch the list of flagged variables
+        fetch(chrome.runtime.getURL('flagged-variables.json'))
+            .then(response => response.json())
+            .then(data => {
+                flaggedVariables = data;
+                resolve({ findAndMarkElementsUsingVars, findHardcodedValues });
+            })
+            .catch(err => {
+                console.error('Token Inspector: Could not fetch or parse flagged-variables.json', err);
+                resolve({ findAndMarkElementsUsingVars, findHardcodedValues }); // Resolve anyway so the scan doesn't hang
+            });
+    });
+}
 
     // --- Initialize and Execute ---
     console.log('Token Inspector Content Script: Starting initialization...');

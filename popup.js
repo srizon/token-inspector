@@ -270,7 +270,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         setTimeout(() => {
                             chrome.tabs.sendMessage(tabs[0].id, { 
                                 action: 'inspectElement', 
-                                elementId: card.dataset.elementId 
+                                elementId: card.dataset.elementId,
+                                issueData: itemData
                             });
                         }, 50);
                     });

@@ -2,7 +2,7 @@
 {
   "manifest_version": 3,
   "name": "Token Inspector",
-  "version": "1.0",
+  "version": "1.2",
   "description": "A Chrome extension to inspect and analyze design tokens and hard-coded CSS values on webpages.",
   "permissions": [
     "activeTab",
@@ -15,5 +15,11 @@
   "devtools_page": "devtools.html",
   "action": {
     "default_popup": "popup.html"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["flagged-variables.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

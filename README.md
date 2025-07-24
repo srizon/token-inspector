@@ -107,6 +107,14 @@ The extension has been significantly optimized for performance with the followin
 
 ## Recent Updates
 
+### Version 1.2 Updates:
+- **Flagged Variables Support**: Added ability to flag specific CSS custom properties for analysis
+- **Enhanced Tooltips**: Improved element highlighting with detailed tooltips showing property and value information
+- **New Test Files**: Added comprehensive test files for flagged variables functionality
+- **Web Accessible Resources**: Updated manifest to support flagged-variables.json resource
+- **Better Element Inspection**: Enhanced element highlighting with tooltip display and cleanup
+- **Improved Error Handling**: Better error handling for flagged variables loading
+
 ### Version 1.1 Updates:
 - **Code Cleanup**: Removed unnecessary test files and server scripts
 - **Streamlined Project Structure**: Focused on core functionality and essential test files

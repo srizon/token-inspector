@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flagged Variables Test</title>
+    <style>
+        :root {
+            --white: #ffffff;
+            --black: #000000;
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --accent-color: #28a745;
+            --text-color: #333333;
+            --background-color: #f8f9fa;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --error-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --disabled-color: #6c757d;
+            --hover-color: #0056b3;
+            --active-color: #004085;
+            --focus-color: #80bdff;
+            --link-color: #007bff;
+            --visited-color: #6610f2;
+            --highlight-color: #fff3cd;
+        }
+
+        /* Elements using flagged variables - these should be flagged */
+        .flagged-element-1 {
+            color: var(--white);
+            background-color: var(--black);
+        }
+
+        .flagged-element-2 {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .flagged-element-3 {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+        }
+
+        .flagged-element-4 {
+            border: 1px solid var(--border-color);
+            background-color: var(--background-color);
+        }
+
+        .flagged-element-5 {
+            color: var(--error-color);
+            background-color: var(--success-color);
+        }
+
+        /* Elements using non-flagged variables - these should NOT be flagged */
+        .non-flagged-element-1 {
+            color: var(--custom-color);
+            background-color: var(--brand-color);
+        }
+
+        .non-flagged-element-2 {
+            border-color: var(--theme-color);
+            box-shadow: 0 2px 4px var(--custom-shadow);
+        }
+
+        /* Elements with hardcoded values - these should be flagged for other reasons */
+        .hardcoded-element-1 {
+            color: #ff0000;
+            background-color: #00ff00;
+        }
+
+        .hardcoded-element-2 {
+            margin: 16px;
+            padding: 8px;
+        }
+
+        .hardcoded-element-3 {
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        /* Test container */
+        .test-container {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .flagged-element-1,
+        .flagged-element-2,
+        .flagged-element-3,
+        .flagged-element-4,
+        .flagged-element-5 {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+
+        .non-flagged-element-1,
+        .non-flagged-element-2 {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+
+        .hardcoded-element-1,
+        .hardcoded-element-2,
+        .hardcoded-element-3 {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Flagged Variables Test</h1>
+        
+        <div class="test-section">
+            <div class="test-title">Elements using flagged variables (should be flagged):</div>
+            <div class="flagged-element-1">This element uses var(--white) and var(--black)</div>
+            <div class="flagged-element-2">This element uses var(--primary-color) and var(--shadow-color)</div>
+            <div class="flagged-element-3">This element uses var(--accent-color) and var(--text-color)</div>
+            <div class="flagged-element-4">This element uses var(--border-color) and var(--background-color)</div>
+            <div class="flagged-element-5">This element uses var(--error-color) and var(--success-color)</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">Elements using non-flagged variables (should NOT be flagged):</div>
+            <div class="non-flagged-element-1">This element uses var(--custom-color) and var(--brand-color)</div>
+            <div class="non-flagged-element-2">This element uses var(--theme-color) and var(--custom-shadow)</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">Elements with hardcoded values (should be flagged for other reasons):</div>
+            <div class="hardcoded-element-1">This element uses hardcoded colors #ff0000 and #00ff00</div>
+            <div class="hardcoded-element-2">This element uses hardcoded spacing 16px and 8px</div>
+            <div class="hardcoded-element-3">This element uses hardcoded typography 14px and 400</div>
+        </div>
+    </div>
+
+    <script>
+        // Add some JavaScript to test the extension
+        console.log('Flagged Variables Test Page Loaded');
+        console.log('Expected flagged elements:', document.querySelectorAll('.flagged-element-1, .flagged-element-2, .flagged-element-3, .flagged-element-4, .flagged-element-5').length);
+        console.log('Expected non-flagged elements:', document.querySelectorAll('.non-flagged-element-1, .non-flagged-element-2').length);
+        console.log('Expected hardcoded elements:', document.querySelectorAll('.hardcoded-element-1, .hardcoded-element-2, .hardcoded-element-3').length);
+    </script>
+</body>
+</html> 

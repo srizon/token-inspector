@@ -377,6 +377,100 @@ document.addEventListener('DOMContentLoaded', function() {
                         element.style.position = 'relative';
                         element.classList.add('ds-lint-highlight');
                         
+                        // Show tooltip
+                        const showTooltip = (element, issueData) => {
+                            // Remove any existing tooltip
+                            const existingTooltip = document.querySelector('.ds-lint-tooltip');
+                            if (existingTooltip) {
+                                existingTooltip.remove();
+                            }
+
+                            // Create tooltip element
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'ds-lint-tooltip';
+                            tooltip.innerHTML = \`<span class="property">\${issueData.property}</span>: <span class="value">\${issueData.value}</span>\`;
+
+                            // Add tooltip styles
+                            tooltip.style.cssText = \`
+                                position: fixed;
+                                background: #1e1e1e;
+                                border: 1px solid #3c3c3c;
+                                border-radius: 4px;
+                                padding: 6px 8px;
+                                font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+                                font-size: 12px;
+                                line-height: 1.2;
+                                z-index: 10000;
+                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                                pointer-events: none;
+                                white-space: nowrap;
+                            \`;
+
+                            // Style the property (blue)
+                            const propertySpan = tooltip.querySelector('.property');
+                            propertySpan.style.cssText = \`
+                                color: #9cdcfe;
+                                font-weight: 500;
+                            \`;
+
+                            // Style the value (orange)
+                            const valueSpan = tooltip.querySelector('.value');
+                            valueSpan.style.cssText = \`
+                                color: #ce9178;
+                            \`;
+
+                            // Add to document
+                            document.body.appendChild(tooltip);
+
+                            // Position tooltip
+                            const positionTooltip = () => {
+                                const rect = element.getBoundingClientRect();
+                                const tooltipRect = tooltip.getBoundingClientRect();
+                                
+                                // Position at top-left corner of the element
+                                let top = rect.top - tooltipRect.height - 8;
+                                let left = rect.left;
+                                
+                                // If tooltip would go off the top, position below
+                                if (top < 10) {
+                                    top = rect.bottom + 8;
+                                }
+                                
+                                // If tooltip would go off the left, adjust
+                                if (left < 10) {
+                                    left = 10;
+                                }
+                                
+                                // If tooltip would go off the right, adjust
+                                if (left + tooltipRect.width > window.innerWidth - 10) {
+                                    left = window.innerWidth - tooltipRect.width - 10;
+                                }
+                                
+                                tooltip.style.top = top + 'px';
+                                tooltip.style.left = left + 'px';
+                            };
+
+                            // Position initially
+                            positionTooltip();
+
+                            // Reposition on window resize
+                            const resizeHandler = () => positionTooltip();
+                            window.addEventListener('resize', resizeHandler);
+
+                            // Store reference for cleanup
+                            window.dsLint = window.dsLint || {};
+                            window.dsLint.currentTooltip = {
+                                element: tooltip,
+                                resizeHandler: resizeHandler
+                            };
+                        };
+
+                        // Show tooltip with issue data
+                        showTooltip(element, {
+                            property: '${itemData.property}',
+                            value: '${itemData.value}'
+                        });
+                        
                         // Scroll to element
                         element.scrollIntoView({ 
                             behavior: 'smooth', 
@@ -384,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             inline: 'center'
                         });
                         
-                        // Remove highlight after 3 seconds
+                        // Remove highlight and tooltip after 3 seconds
                         setTimeout(() => {
                             if (element.classList.contains('ds-lint-highlight')) {
                                 element.style.outline = '';
@@ -393,6 +487,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                 element.style.zIndex = '';
                                 element.style.position = '';
                                 element.classList.remove('ds-lint-highlight');
+                                
+                                // Remove tooltip
+                                const existingTooltip = document.querySelector('.ds-lint-tooltip');
+                                if (existingTooltip) {
+                                    existingTooltip.remove();
+                                }
+                                
+                                // Clean up tooltip event listeners
+                                if (window.dsLint && window.dsLint.currentTooltip) {
+                                    window.removeEventListener('resize', window.dsLint.currentTooltip.resizeHandler);
+                                    window.dsLint.currentTooltip = null;
+                                }
                             }
                         }, 3000);
                     } else {
