@@ -77,8 +77,26 @@
                 window.dsLint.inspectAndHighlight(request.elementId);
                 sendResponse({ success: true });
             } else if (request.action === 'runScan') {
-                runScan();
-                sendResponse({ success: true });
+                window.dsLint.runScan();
+                // Return results immediately if available, otherwise wait for scan to complete
+                if (window.dsLint.finalResults) {
+                    sendResponse({ success: true, results: window.dsLint.finalResults });
+                } else {
+                    // Wait for scan to complete
+                    const checkResults = setInterval(() => {
+                        if (window.dsLint.finalResults) {
+                            clearInterval(checkResults);
+                            sendResponse({ success: true, results: window.dsLint.finalResults });
+                        }
+                    }, 50);
+                    
+                    // Timeout after 5 seconds
+                    setTimeout(() => {
+                        clearInterval(checkResults);
+                        sendResponse({ success: false, error: 'Scan timeout' });
+                    }, 5000);
+                }
+                return true; // Keep message channel open for async response
             } else if (request.action === 'clearHighlight') {
                 window.dsLint.clearHighlight();
                 sendResponse({ success: true });
@@ -115,7 +133,9 @@
 
     // --- Main Scan Function ---
     // This runs every time the content script is injected.
-    function runScan() {
+    window.dsLint.runScan = function() {
+        console.log('Token Inspector Content Script: runScan called');
+        
         // 1. Cleanup old state from any previous scans
         document.querySelectorAll('[data-ds-lint-id]').forEach(el => el.removeAttribute('data-ds-lint-id'));
         if (window.dsLint.highlightedElement) {
@@ -132,13 +152,31 @@
         window.dsLint.elementMap.clear();
 
         // 2. Run the optimized scan
+        console.log('Token Inspector Content Script: Running optimized scan...');
         const { findAndMarkElementsUsingVars, findHardcodedValues } = setupOptimizedScanner();
         findAndMarkElementsUsingVars();
         const finalResults = findHardcodedValues();
 
-        // 3. Send the results back to the popup
+        // 3. Store results for both popup and devtools
+        window.dsLint.finalResults = finalResults;
+        console.log('Token Inspector Content Script: Scan completed, results:', finalResults);
+        
+        // 4. Add a simple verification test
+        console.log('Token Inspector Content Script: Verifying results...');
+        const totalViolations = Object.values(finalResults).reduce((sum, items) => sum + items.length, 0);
+        console.log('Token Inspector Content Script: Total violations found:', totalViolations);
+        
+        // Check for specific test violations
+        const badElements = document.querySelectorAll('.bad-element-1, .bad-element-2, .bad-element-3');
+        console.log('Token Inspector Content Script: Bad elements in DOM:', badElements.length);
+        
+        if (totalViolations === 0 && badElements.length > 0) {
+            console.warn('Token Inspector Content Script: WARNING - Found bad elements but no violations detected!');
+        }
+        
+        // Send results back to the requester (popup or devtools)
         chrome.runtime.sendMessage({ type: 'scanComplete', results: finalResults });
-    }
+    };
     
     // --- Optimized Scanner Setup ---
     function setupOptimizedScanner() {
@@ -450,6 +488,14 @@
     }
 
     // --- Execute Scan ---
-    runScan();
+    console.log('Token Inspector Content Script: Initializing...');
+    console.log('Token Inspector Content Script: runScan function available:', typeof window.dsLint.runScan);
+    
+    // Add a simple test to verify the script is working
+    console.log('Token Inspector Content Script: Testing basic functionality...');
+    const testElements = document.querySelectorAll('.bad-element-1, .bad-element-2, .bad-element-3');
+    console.log('Token Inspector Content Script: Found test elements:', testElements.length);
+    
+    window.dsLint.runScan();
 
 })();

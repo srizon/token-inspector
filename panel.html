@@ -2,67 +2,204 @@
 <html>
 <head>
     <title>Token Inspector Panel</title>
+    <link rel="stylesheet" type="text/css" href="popup.css">
     <style>
+        /* Simplified Code Editor Design */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            width: auto !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #d4d4d4;
+            background: #1e1e1e;
             margin: 0;
-            padding: 16px;
-            background-color: #f0f2f5;
-            color: #1a1a1a;
+            padding: 0;
         }
         
+        .app-container {
+            height: 100vh !important;
+            border: none !important;
+            border-radius: 0 !important;
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .results-container {
+            height: calc(100vh - 120px) !important;
+            background: #252526;
+            border-top: 1px solid #3c3c3c;
+            overflow-y: auto;
+        }
+        
+        /* Simplified header */
         .header {
+            padding: 8px 16px;
+            background: #2d2d30;
+            border-bottom: 1px solid #3c3c3c;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            min-height: 48px;
+            box-sizing: border-box;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            color: #007acc;
+        }
+        
+        .logo svg {
+            width: 16px;
+            height: 16px;
         }
         
         h1 {
-            font-size: 18px;
-            margin: 0;
+            font-size: 14px;
             font-weight: 600;
+            margin: 0;
+            color: #cccccc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
         .scan-button {
-            background-color: #007AFF;
-            color: white;
+            background: #0e639c;
+            color: #ffffff;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border-radius: 2px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: background-color 0.1s ease;
         }
         
         .scan-button:hover {
-            background-color: #0056CC;
+            background: #1177bb;
         }
         
         .scan-button:disabled {
-            background-color: #ccc;
+            background: #3c3c3c;
+            color: #6a6a6a;
             cursor: not-allowed;
         }
         
-        .scanner-state {
+        /* Simplified category tabs */
+        .category-tabs {
+            background: #2d2d30;
+            border-bottom: 1px solid #3c3c3c;
+            padding: 0;
+        }
+        
+        .tabs-container {
             display: flex;
-            flex-direction: column;
+            gap: 0;
+            overflow-x: auto;
+            padding: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            width: 100%;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab-button {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            margin-bottom: 16px;
+            gap: 8px;
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #cccccc;
+            transition: all 0.1s ease;
+            white-space: nowrap;
+            border-right: 1px solid #3c3c3c;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            position: relative;
+        }
+        
+        .tab-button:hover {
+            background: #3c3c3c;
+            color: #ffffff;
+        }
+        
+        .tab-button.active {
+            background: #1e1e1e;
+            color: #ffffff;
+            border-bottom: 2px solid #007acc;
+        }
+        
+        .tab-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .tab-count {
+            background: #0e639c;
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            min-width: 16px;
+            text-align: center;
+        }
+        
+        .tab-button:not(.active) .tab-count {
+            background: #3c3c3c;
+            color: #cccccc;
+        }
+        
+        /* Simplified scanner state */
+        .scanner-state {
+            background: #252526;
+            border: 1px solid #3c3c3c;
+            border-radius: 0;
+            margin: 16px;
+        }
+        
+        .scanner-content {
+            text-align: center;
+            max-width: 300px;
+            padding: 32px 20px;
+        }
+        
+        .scanner-content p {
+            font-size: 13px;
+            font-weight: 400;
+            color: #cccccc;
+            margin: 12px 0 0 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
         .spinner {
-            width: 24px;
-            height: 24px;
-            border: 2px solid #e4e6eb;
-            border-top: 2px solid #007AFF;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3c3c3c;
+            border-top: 2px solid #007acc;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 16px;
+            margin: 0 auto;
         }
         
         @keyframes spin {
@@ -70,145 +207,278 @@
             100% { transform: rotate(360deg); }
         }
         
-        #results-container {
-            max-height: 600px;
-            overflow-y: auto;
+        /* Clean results styling */
+        .results-container {
+            padding: 0;
+            background: #252526;
         }
         
         .category-section {
-            margin-bottom: 16px;
-            background-color: #fff;
-            border-radius: 8px;
-            overflow: hidden;
+            margin: 0;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        
+        .category-section:last-child {
+            border-bottom: none;
         }
         
         .category-header {
+            padding: 8px 16px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
+            justify-content: space-between;
+            background: #2d2d30;
+            border-bottom: 1px solid #3c3c3c;
             cursor: pointer;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.1s ease;
+        }
+        
+        .category-header:hover {
+            background: #3c3c3c;
         }
         
         .category-title {
+            font-size: 12px;
             font-weight: 600;
-            font-size: 14px;
+            color: #cccccc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
         .category-count {
-            background-color: #e4e6eb;
-            color: #4b4f56;
-            padding: 3px 9px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
+            background: #0e639c;
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            min-width: 16px;
+            text-align: center;
         }
         
         .results-list {
-            list-style-type: none;
             padding: 0;
             margin: 0;
         }
         
-        .result-item-card {
-            padding: 12px 16px;
-            border-bottom: 1px solid #e9ecef;
+        /* Clean multi-line issue cards */
+        .issue-card {
+            margin: 0;
+            padding: 8px 16px;
+            background: #252526;
+            border: none;
+            border-bottom: 1px solid #3c3c3c;
+            border-radius: 0;
             cursor: pointer;
-            transition: background-color 0.15s ease;
-        }
-        
-        .result-item-card:hover {
-            background-color: #f5f8ff;
-        }
-        
-        .item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-        
-        .item-selector {
-            font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
-            font-size: 13px;
-            font-weight: 500;
-            color: #0e101a;
-            flex: 1;
-        }
-        
-        .element-count {
-            background-color: #e4e6eb;
-            color: #4b4f56;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
-            margin-left: 8px;
-            white-space: nowrap;
-        }
-        
-        .item-properties {
-            margin-bottom: 8px;
-        }
-        
-        .property-text {
-            font-size: 12px;
-            color: #606770;
+            transition: background-color 0.1s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 48px;
             line-height: 1.4;
         }
         
-        .item-path {
-            margin-top: 10px;
-            font-size: 11px;
-            color: #8a8d91;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .issue-card:hover {
+            background: #2a2d2e;
         }
         
+        .issue-card:active {
+            background: #3c3c3c;
+        }
+        
+        /* CSS-like syntax highlighting */
+        .issue-selector {
+            color: #dcdcaa;
+            font-weight: 400;
+            margin-right: 8px;
+        }
+        
+        .issue-brace {
+            color: #dcdcaa;
+            margin-right: 4px;
+        }
+        
+        .issue-property {
+            color: #9cdcfe;
+            font-weight: 400;
+            margin-right: 4px;
+            white-space: pre;
+        }
+        
+        .issue-colon {
+            color: #d4d4d4;
+            margin-right: 4px;
+        }
+        
+        .issue-value {
+            color: #ce9178;
+            font-weight: 400;
+            margin-right: 4px;
+        }
+        
+        .issue-semicolon {
+            color: #d4d4d4;
+            margin-right: 8px;
+        }
+        
+
+        
+        /* Simplified no results message */
         .no-results {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 40px 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            color: #8a8d91;
+            background: #252526;
+            flex: 1;
         }
         
-        .no-results svg {
+        .no-results-content {
+            text-align: center;
+            max-width: 300px;
+        }
+        
+        .success-icon {
             margin-bottom: 16px;
-            color: #42b883;
+            color: #6a9955;
+        }
+        
+        .success-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+        
+        .no-results h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #cccccc;
+            margin: 0 0 8px 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
         .no-results p {
+            font-size: 12px;
+            color: #6a9955;
+            line-height: 1.4;
             margin: 0;
-            font-size: 14px;
-            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        /* VS Code inspired scrollbar */
+        .results-container::-webkit-scrollbar {
+            width: 14px;
+        }
+        
+        .results-container::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        
+        .results-container::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 0;
+            border: 3px solid #1e1e1e;
+        }
+        
+        .results-container::-webkit-scrollbar-thumb:hover {
+            background: #4f4f4f;
+        }
+        
+        .results-container::-webkit-scrollbar-corner {
+            background: #1e1e1e;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header {
+                padding: 6px 12px;
+            }
+            
+            .issue-card {
+                padding: 4px 12px;
+            }
+            
+            .category-header {
+                padding: 6px 12px;
+            }
+        }
+        
+        /* VS Code color scheme variables for consistency */
+        :root {
+            --vscode-bg: #1e1e1e;
+            --vscode-bg-secondary: #252526;
+            --vscode-bg-tertiary: #2d2d30;
+            --vscode-border: #3c3c3c;
+            --vscode-text: #d4d4d4;
+            --vscode-text-secondary: #cccccc;
+            --vscode-accent: #007acc;
+            --vscode-error: #f44747;
+            --vscode-success: #6a9955;
+            --vscode-warning: #cca700;
+            --vscode-info: #9cdcfe;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Design System Linter</h1>
-        <button id="scan-button" class="scan-button">Scan Page</button>
+    <div class="app-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>Token Inspector</h1>
+            </div>
+            <button id="scan-button" class="scan-button">Scan</button>
+        </div>
+
+        <div id="scanner-state" class="scanner-state">
+            <div class="scanner-content">
+                <div class="spinner"></div>
+                <p>Analyzing CSS values...</p>
+            </div>
+        </div>
+
+        <div id="category-tabs" class="category-tabs" style="display: none;">
+            <div class="tabs-container">
+                <button class="tab-button active" data-category="all">
+                    <span class="tab-label">All</span>
+                    <span class="tab-count" id="all-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Colors">
+                    <span class="tab-label">Colors</span>
+                    <span class="tab-count" id="colors-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Typography">
+                    <span class="tab-label">Typography</span>
+                    <span class="tab-count" id="typography-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Spacing">
+                    <span class="tab-label">Spacing</span>
+                    <span class="tab-count" id="spacing-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Radius">
+                    <span class="tab-label">Radius</span>
+                    <span class="tab-count" id="radius-count">0</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="results-container" class="results-container"></div>
+
+        <div id="no-results-message" class="no-results" style="display: none;">
+            <div class="no-results-content">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                </div>
+                <h3>No violations found</h3>
+                <p>All CSS values are using design tokens correctly.</p>
+            </div>
+        </div>
     </div>
-    
-    <div id="scanner-state" class="scanner-state" style="display: none;">
-        <div class="spinner"></div>
-        <p>Scanning for design violations...</p>
-    </div>
-    
-    <div id="results-container"></div>
-    
-    <div id="no-results-message" class="no-results" style="display: none;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        <p>No hard-coded values found. Great job!</p>
-    </div>
-    
+    <script src="shared-scanner.js"></script>
     <script src="panel.js"></script>
 </body>
 </html> 

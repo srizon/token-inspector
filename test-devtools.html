@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevTools Panel Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #666;
+        }
+        
+        /* These should be flagged as violations */
+        .color-violation {
+            color: #ff6b6b;
+            background-color: rgb(74, 144, 226);
+        }
+        
+        .spacing-violation {
+            margin: 25px;
+            padding: 15px;
+        }
+        
+        .typography-violation {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+        
+        .radius-violation {
+            border-radius: 8px;
+        }
+        
+        /* These should NOT be flagged (using CSS variables) */
+        .good-example {
+            color: var(--primary-color, #007bff);
+            padding: var(--spacing-md, 1rem);
+            font-size: var(--font-size-base, 16px);
+            border-radius: var(--border-radius, 4px);
+        }
+        
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #0056b3;
+        }
+        
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Token Inspector DevTools Test</h1>
+        
+        <div class="instructions">
+            <h3>How to test the DevTools Panel:</h3>
+            <ol>
+                <li>Make sure the Token Inspector extension is loaded in Chrome</li>
+                <li>Open Chrome DevTools (F12 or right-click → Inspect)</li>
+                <li>Look for the "Token Inspector" tab in the DevTools panel</li>
+                <li>Click on the "Token Inspector" tab to open the panel</li>
+                <li>The panel should automatically scan the page and show violations</li>
+                <li>Click on any violation to highlight the element on the page</li>
+            </ol>
+        </div>
+        
+        <div class="test-section">
+            <h3>Color Violations (should be flagged)</h3>
+            <div class="color-violation">
+                This element has hardcoded colors: #ff6b6b and rgb(74, 144, 226)
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Spacing Violations (should be flagged)</h3>
+            <div class="spacing-violation">
+                This element has hardcoded spacing: margin: 25px, padding: 15px
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Typography Violations (should be flagged)</h3>
+            <div class="typography-violation">
+                This element has hardcoded typography: font-size: 18px, font-weight: 600, line-height: 1.5
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Border Radius Violations (should be flagged)</h3>
+            <div class="radius-violation" style="border: 2px solid #ccc; padding: 10px;">
+                This element has hardcoded border-radius: 8px
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Good Examples (should NOT be flagged)</h3>
+            <div class="good-example" style="border: 1px solid #ddd;">
+                This element uses CSS variables and should not be flagged
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Expected Results</h3>
+            <p>The DevTools panel should show:</p>
+            <ul>
+                <li><strong>Colors:</strong> 2 violations (color and background-color)</li>
+                <li><strong>Spacing:</strong> 2 violations (margin and padding)</li>
+                <li><strong>Typography:</strong> 3 violations (font-size, font-weight, line-height)</li>
+                <li><strong>Radius:</strong> 1 violation (border-radius)</li>
+            </ul>
+            <p><strong>Total:</strong> 8 violations should be detected</p>
+        </div>
+    </div>
+    
+    <script>
+        // Add some console logging to help debug
+        console.log('Token Inspector Test Page: Page loaded');
+        console.log('Token Inspector Test Page: Looking for violations...');
+        
+        // Check if content script is loaded
+        setTimeout(() => {
+            if (window.dsLint) {
+                console.log('Token Inspector Test Page: Content script detected');
+                console.log('Token Inspector Test Page: dsLint object:', window.dsLint);
+            } else {
+                console.log('Token Inspector Test Page: Content script not detected');
+            }
+        }, 1000);
+    </script>
+</body>
+</html> 

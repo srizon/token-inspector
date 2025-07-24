@@ -3,228 +3,148 @@ document.addEventListener('DOMContentLoaded', function() {
     const scannerState = document.getElementById('scanner-state');
     const resultsContainer = document.getElementById('results-container');
     const noResultsMessage = document.getElementById('no-results-message');
+    const categoryTabs = document.getElementById('category-tabs');
+    let allResults = {};
+    let currentCategory = 'all';
 
-    scanButton.addEventListener('click', startScan);
-
-    function startScan() {
-        scanButton.disabled = true;
-        scannerState.style.display = 'flex';
-        resultsContainer.style.display = 'none';
-        noResultsMessage.style.display = 'none';
-
-        // Get the inspected window
-        chrome.devtools.inspectedWindow.eval(`
-            (function() {
-                // Get all stylesheets
-                const stylesheets = Array.from(document.styleSheets);
-                const hardcodedValues = [];
-                let elementCounter = 0;
-
-                function getCssSelector(el) {
-                    if (el.id) return '#' + el.id;
-                    if (el.className) {
-                        // Handle both string and DOMTokenList
-                        let classNames;
-                        if (typeof el.className === 'string') {
-                            classNames = el.className.split(' ').filter(c => c.trim());
-                        } else if (el.className && el.className.length) {
-                            // DOMTokenList
-                            classNames = Array.from(el.className).filter(c => c.trim());
-                        }
-                        
-                        if (classNames && classNames.length > 0) {
-                            return el.tagName.toLowerCase() + '.' + classNames.join('.');
-                        }
-                    }
-                    return el.tagName.toLowerCase();
-                }
-
-                function getBreadcrumbs(el) {
-                    const breadcrumbs = [];
-                    let current = el;
-                    while (current && current !== document.body) {
-                        breadcrumbs.unshift(getCssSelector(current));
-                        current = current.parentElement;
-                    }
-                    return breadcrumbs.join(' > ');
-                }
-
-                // Check each stylesheet
-                stylesheets.forEach((sheet, sheetIndex) => {
-                    try {
-                        const rules = Array.from(sheet.cssRules || sheet.rules || []);
-                        
-                        rules.forEach((rule, ruleIndex) => {
-                            if (rule.style) {
-                                const style = rule.style;
-                                const properties = [
-                                    // Color properties
-                                    'color', 'background-color', 'border-color', 
-                                    'border-top-color', 'border-right-color', 
-                                    'border-bottom-color', 'border-left-color',
-                                    // Typography properties
-                                    'font-size', 'line-height', 'font-weight', 'font-family',
-                                    'letter-spacing', 'text-align', 'text-decoration',
-                                    // Spacing properties
-                                    'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-                                    'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
-                                    // Layout properties
-                                    'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height'
-                                ];
-                                
-                                properties.forEach(property => {
-                                    const value = style.getPropertyValue(property);
-                                    if (value && value.trim() && 
-                                        !value.startsWith('var(--') && 
-                                        !value.startsWith('inherit') && 
-                                        !value.startsWith('initial') &&
-                                        value !== 'transparent' && 
-                                        value !== 'currentColor' &&
-                                        value !== 'auto' &&
-                                        value !== 'normal' &&
-                                        value !== 'none') {
-                                        
-                                        // For color properties, check if it's a hardcoded color
-                                        const isColorProperty = property.includes('color');
-                                        const isHardcodedColor = isColorProperty && (
-                                            value.match(/^#[0-9a-fA-F]{3,6}$/) ||
-                                            value.match(/^rgb\\([^)]+\\)$/) ||
-                                            value.match(/^rgba\\([^)]+\\)$/) ||
-                                            value.match(/^hsl\\([^)]+\\)$/) ||
-                                            value.match(/^hsla\\([^)]+\\)$/)
-                                        );
-                                        
-                                        // For non-color properties, check if it's a hardcoded value (not using design tokens)
-                                        const isHardcodedValue = !isColorProperty && 
-                                            !value.startsWith('var(--') && 
-                                            !value.startsWith('calc(') &&
-                                            !value.startsWith('clamp(') &&
-                                            !value.startsWith('min(') &&
-                                            !value.startsWith('max(');
-                                        
-                                        if (isColorProperty ? isHardcodedColor : isHardcodedValue) {
-                                        
-                                        // Find elements that match this rule
-                                        try {
-                                            const elements = document.querySelectorAll(rule.selectorText);
-                                            elements.forEach(element => {
-                                                const elementId = 'ds-lint-' + (++elementCounter);
-                                                element.setAttribute('data-ds-lint-id', elementId);
-                                                
-                                                hardcodedValues.push({
-                                                    elementId: elementId,
-                                                    selector: getCssSelector(element),
-                                                    property: property.replace('-', ' ').replace(/\\b\\w/g, l => l.toUpperCase()),
-                                                    value: value,
-                                                    path: getBreadcrumbs(element),
-                                                    rule: rule.selectorText,
-                                                    stylesheet: sheet.href || 'inline'
-                                                });
-                                            });
-                                        } catch (e) {
-                                            // Invalid selector, skip
-                                        }
-                                    }
-                                });
-                            }
-                        });
-                    } catch (e) {
-                        // Cross-origin stylesheet, skip
-                    }
-                });
-
-                return hardcodedValues;
-            })()
-        `, function(result, isException) {
+    // Initialize the shared scanner for devtools
+    const scanner = new TokenInspectorScanner({
+        isDevTools: true,
+        onScanStart: () => {
+            scanButton.disabled = true;
+            scannerState.style.display = 'flex';
+            resultsContainer.style.display = 'none';
+            noResultsMessage.style.display = 'none';
+            categoryTabs.style.display = 'none';
+        },
+        onScanComplete: () => {
             scanButton.disabled = false;
             scannerState.style.display = 'none';
-            
-            if (isException) {
-                console.error('Token Inspector: Error scanning page:', isException);
-                return;
-            }
+        },
+        onResultsReady: (results) => {
+            displayResults(results);
+        },
+        onError: (error) => {
+            console.error('Token Inspector DevTools: Error:', error);
+            scanButton.disabled = false;
+            scannerState.style.display = 'none';
+        }
+    });
 
-            displayResults(result || []);
-        });
-    }
+    // Listen for messages from content script
+    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+        if (request.type === 'scanComplete') {
+            scanner.onScanComplete();
+            displayResults(request.results);
+        }
+    });
 
+    // Display results with tab functionality (same as popup)
     function displayResults(results) {
         resultsContainer.innerHTML = '';
 
-        if (results.length === 0) {
+        // Handle both array format (old) and object format (new)
+        if (Array.isArray(results)) {
+            // Convert array format to object format
+            const converted = {};
+            results.forEach(item => {
+                let category = 'Other Properties';
+                if (item.category === 'Colors' || item.property.includes('Color')) {
+                    category = 'Colors';
+                } else if (item.category === 'Typography' || item.property.includes('Font') || item.property.includes('Line')) {
+                    category = 'Typography';
+                } else if (item.category === 'Spacing' || item.property.includes('Margin') || item.property.includes('Padding')) {
+                    category = 'Spacing';
+                } else if (item.category === 'Radius' || item.property.includes('Radius')) {
+                    category = 'Radius';
+                }
+                
+                if (!converted[category]) {
+                    converted[category] = [];
+                }
+                converted[category].push(item);
+            });
+            results = converted;
+        }
+
+        // Store results for category tabs
+        allResults = results;
+
+        // Check if we have any results
+        const totalIssues = Object.values(results).reduce((sum, items) => sum + items.length, 0);
+        if (totalIssues === 0) {
             noResultsMessage.style.display = 'flex';
             return;
         }
 
-        // Group by property type first, then by element selector
-        const grouped = {};
-        results.forEach(item => {
-            let category;
-            if (item.property.includes('Color')) {
-                category = 'Hardcoded Colors';
-            } else if (item.property.includes('Font') || item.property.includes('Line') || item.property.includes('Letter') || item.property.includes('Text')) {
-                category = 'Typography Issues';
-            } else if (item.property.includes('Margin') || item.property.includes('Padding')) {
-                category = 'Spacing Issues';
-            } else if (item.property.includes('Width') || item.property.includes('Height')) {
-                category = 'Layout Issues';
-            } else {
-                category = 'Other Properties';
-            }
-            if (!grouped[category]) {
-                grouped[category] = {};
-            }
-            
-            // Create a unique key for each selector
-            const issueKey = item.selector;
-            if (!grouped[category][issueKey]) {
-                grouped[category][issueKey] = {
-                    selector: item.selector,
-                    path: item.path,
-                    properties: [], // Simple array of property objects
-                    elementIds: new Set() // Track unique element IDs
-                };
-            }
-            
-            // Add the property if it doesn't exist
-            const existingProperty = grouped[category][issueKey].properties.find(p => 
-                p.property === item.property && p.value === item.value
-            );
-            
-            if (!existingProperty) {
-                grouped[category][issueKey].properties.push({
-                    property: item.property,
-                    value: item.value
-                });
-            }
-            
-            // Add element ID
-            grouped[category][issueKey].elementIds.add(item.elementId);
-        });
-
-        Object.keys(grouped).forEach(category => {
-            const elementGroups = Object.values(grouped[category]);
-            const allIssues = [];
-            
-            // Convert to the format expected by createIssueCard
-            elementGroups.forEach(elementGroup => {
-                allIssues.push({
-                    selector: elementGroup.selector,
-                    path: elementGroup.path,
-                    properties: elementGroup.properties,
-                    elements: Array.from(elementGroup.elementIds).map(elementId => ({ elementId }))
-                });
-            });
-            
-            const section = createCategorySection(category, allIssues);
-            resultsContainer.appendChild(section);
-        });
-
+        // Show category tabs and display results
+        categoryTabs.style.display = 'block';
         resultsContainer.style.display = 'block';
         
-        // Open the first category by default
-        const firstHeader = resultsContainer.querySelector('.category-header');
-        if (firstHeader) firstHeader.click();
+        // Update tab counts
+        updateTabCounts();
+        
+        // Setup tab functionality
+        setupCategoryTabs();
+        
+        // Display current category
+        displayCurrentCategory();
+    }
+
+    function updateTabCounts() {
+        const totalIssues = Object.values(allResults).reduce((sum, items) => sum + items.length, 0);
+        
+        // Update all count
+        const allCount = document.getElementById('all-count');
+        if (allCount) allCount.textContent = totalIssues;
+        
+        // Update individual category counts
+        const categories = ['Colors', 'Typography', 'Spacing', 'Radius'];
+        categories.forEach(category => {
+            const countElement = document.getElementById(category.toLowerCase() + '-count');
+            if (countElement) {
+                const count = allResults[category] ? allResults[category].length : 0;
+                countElement.textContent = count;
+            }
+        });
+    }
+
+    function setupCategoryTabs() {
+        const tabButtons = categoryTabs.querySelectorAll('.tab-button');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active tab
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current category and display
+                currentCategory = button.dataset.category;
+                displayCurrentCategory();
+            });
+        });
+    }
+
+    function displayCurrentCategory() {
+        resultsContainer.innerHTML = '';
+
+        if (currentCategory === 'all') {
+            // Display all categories
+            Object.keys(allResults).forEach(category => {
+                const items = allResults[category];
+                if (items.length > 0) {
+                    const section = createCategorySection(category, items);
+                    resultsContainer.appendChild(section);
+                }
+            });
+        } else {
+            // Display specific category
+            const items = allResults[currentCategory] || [];
+            if (items.length > 0) {
+                const section = createCategorySection(currentCategory, items);
+                resultsContainer.appendChild(section);
+            }
+        }
     }
 
     function createCategorySection(category, items) {
@@ -235,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
         header.className = 'category-header';
         header.innerHTML = `<span class="category-title">${category}</span><span class="category-count">${items.length}</span>`;
 
-        const list = document.createElement('ul');
+        const list = document.createElement('div');
         list.className = 'results-list';
 
         items.forEach(itemData => {
@@ -243,96 +163,129 @@ document.addEventListener('DOMContentLoaded', function() {
             list.appendChild(card);
         });
 
-        header.addEventListener('click', () => {
-            const isHidden = list.style.display === 'none' || list.style.display === '';
-            list.style.display = isHidden ? 'block' : 'none';
-        });
-
         section.appendChild(header);
         section.appendChild(list);
         return section;
     }
 
-    function createIssueCard(issueData) {
-        const li = document.createElement('li');
-        li.className = 'result-item-card';
-        
-        // Show count if multiple elements are affected
-        const countBadge = issueData.elements.length > 1 ? 
-            `<span class="element-count">${issueData.elements.length} elements</span>` : '';
+    function createIssueCard(itemData) {
+        const card = document.createElement('div');
+        card.className = 'issue-card';
+        card.dataset.elementId = itemData.elementId;
 
-        // Create property list as inline text
-        const propertyText = issueData.properties.map(prop => 
-            `${prop.property}: ${prop.value}`
-        ).join('; ');
+        // Format the value to show the original format (hex vs rgba)
+        const formattedValue = formatCssValue(itemData.value);
 
-        li.innerHTML = `
-            <div class="item-header">
-                <div class="item-selector" title="${issueData.selector}">${issueData.selector}</div>
-                ${countBadge}
-            </div>
-            <div class="item-properties">
-                <span class="property-text">${propertyText}</span>
-            </div>
-            <div class="item-path" title="${issueData.path}">${issueData.path}</div>
+        card.innerHTML = `
+            <span class="issue-selector">${itemData.selector}</span>
+            <span class="issue-brace">{</span>
+            <br>
+            <span class="issue-property">  ${itemData.property}</span>
+            <span class="issue-colon">:</span>
+            <span class="issue-value">${formattedValue}</span>
+            <span class="issue-semicolon">;</span>
+            <br>
+            <span class="issue-brace">}</span>
         `;
 
-        li.addEventListener('click', () => {
-            // Highlight all affected elements
-            const elementIds = issueData.elements.map(el => el.elementId);
+        card.addEventListener('click', () => {
+            console.log('Token Inspector DevTools: Clicked on item with data:', itemData);
             
+            // Use DevTools API for highlighting
             chrome.devtools.inspectedWindow.eval(`
                 (function() {
-                    // Clear previous highlights
-                    const prevHighlights = document.querySelectorAll('.ds-lint-highlight');
-                    prevHighlights.forEach(el => {
-                        el.style.outline = '';
-                        el.style.boxShadow = '';
-                        el.style.backgroundColor = '';
-                        el.classList.remove('ds-lint-highlight');
-                    });
+                    // Try multiple ways to find the element
+                    let element = document.querySelector('[data-ds-lint-id="${itemData.elementId}"]');
                     
-                    // Highlight all affected elements
-                    const elementIds = ${JSON.stringify(elementIds)};
-                    let firstElement = null;
+                    // If not found by data attribute, try by selector
+                    if (!element && itemData.selector) {
+                        try {
+                            element = document.querySelector(itemData.selector);
+                        } catch (e) {
+                            console.log('Token Inspector DevTools: Invalid selector:', itemData.selector);
+                        }
+                    }
                     
-                    elementIds.forEach(elementId => {
-                        const element = document.querySelector('[data-ds-lint-id="' + elementId + '"]');
-                        if (element) {
-                            element.style.outline = '3px solid #007AFF';
-                            element.style.boxShadow = '0 0 20px rgba(0, 122, 255, 0.7)';
-                            element.style.backgroundColor = 'rgba(0, 122, 255, 0.1)';
-                            element.classList.add('ds-lint-highlight');
-                            
-                            if (!firstElement) {
-                                firstElement = element;
+                    // If still not found, try to find by path
+                    if (!element && itemData.path) {
+                        const pathParts = itemData.path.split(' > ');
+                        if (pathParts.length > 0) {
+                            try {
+                                element = document.querySelector(pathParts[pathParts.length - 1]);
+                            } catch (e) {
+                                console.log('Token Inspector DevTools: Invalid path selector:', pathParts[pathParts.length - 1]);
                             }
                         }
-                    });
+                    }
                     
-                    // Scroll to first element if found
-                    if (firstElement) {
-                        firstElement.scrollIntoView({ 
+                    if (element) {
+                        console.log('Token Inspector DevTools: Found element for highlighting:', element);
+                        
+                        // Clear previous highlight
+                        const prevHighlight = document.querySelector('.ds-lint-highlight');
+                        if (prevHighlight) {
+                            prevHighlight.style.outline = '';
+                            prevHighlight.style.boxShadow = '';
+                            prevHighlight.style.backgroundColor = '';
+                            prevHighlight.style.zIndex = '';
+                            prevHighlight.style.position = '';
+                            prevHighlight.classList.remove('ds-lint-highlight');
+                        }
+                        
+                        // Also clear any existing highlight from content script
+                        if (window.dsLint && window.dsLint.clearHighlight) {
+                            window.dsLint.clearHighlight();
+                        }
+                        
+                        // Add highlight
+                        element.style.outline = '4px solid #FF3B30';
+                        element.style.boxShadow = '0 0 25px rgba(255, 59, 48, 0.8)';
+                        element.style.backgroundColor = 'rgba(255, 59, 48, 0.15)';
+                        element.style.zIndex = '9999';
+                        element.style.position = 'relative';
+                        element.classList.add('ds-lint-highlight');
+                        
+                        // Scroll to element
+                        element.scrollIntoView({ 
                             behavior: 'smooth', 
                             block: 'center',
                             inline: 'center'
                         });
+                        
+                        // Remove highlight after 3 seconds
+                        setTimeout(() => {
+                            if (element.classList.contains('ds-lint-highlight')) {
+                                element.style.outline = '';
+                                element.style.boxShadow = '';
+                                element.style.backgroundColor = '';
+                                element.style.zIndex = '';
+                                element.style.position = '';
+                                element.classList.remove('ds-lint-highlight');
+                            }
+                        }, 3000);
+                    } else {
+                        console.log('Token Inspector DevTools: Could not find element for highlighting. ElementId:', '${itemData.elementId}', 'Selector:', '${itemData.selector}');
                     }
-                    
-                    // Remove highlights after 3 seconds
-                    setTimeout(() => {
-                        const highlights = document.querySelectorAll('.ds-lint-highlight');
-                        highlights.forEach(el => {
-                            el.style.outline = '';
-                            el.style.boxShadow = '';
-                            el.style.backgroundColor = '';
-                            el.classList.remove('ds-lint-highlight');
-                        });
-                    }, 3000);
                 })()
             `);
         });
-        
-        return li;
+        return card;
     }
+
+    function formatCssValue(value) {
+        // Return the original value as-is to preserve the CSS format
+        // This ensures hex values stay hex, rgb values stay rgb, etc.
+        return value;
+    }
+
+    // Add click handler for scan button
+    scanButton.addEventListener('click', () => {
+        scanner.startScan();
+    });
+
+    // Start scanning automatically when panel loads
+    setTimeout(() => {
+        console.log('Token Inspector DevTools: Starting automatic scan...');
+        scanner.startScan();
+    }, 1000);
 }); 

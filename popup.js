@@ -6,309 +6,68 @@ document.addEventListener('DOMContentLoaded', function() {
     let allResults = {};
     let currentCategory = 'all';
 
-    function startScan() {
-        scannerState.style.display = 'flex';
-        resultsContainer.style.display = 'none';
-        noResultsMessage.style.display = 'none';
-        categoryTabs.style.display = 'none';
+    // Initialize the shared scanner for popup
+    const scanner = new TokenInspectorScanner({
+        isDevTools: false,
+        onScanStart: () => {
+            scannerState.style.display = 'flex';
+            resultsContainer.style.display = 'none';
+            noResultsMessage.style.display = 'none';
+            categoryTabs.style.display = 'none';
+        },
+        onScanComplete: () => {
+            scannerState.style.display = 'none';
+        },
+        onResultsReady: (results) => {
+            displayResults(results);
+        },
+        onError: (error) => {
+            console.error('Token Inspector Popup: Error:', error);
+            scannerState.style.display = 'none';
+        }
+    });
 
-        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-            if (tabs.length === 0) return;
-            
-            // Use DevTools API if available, otherwise fall back to content script
-            if (chrome.devtools && chrome.devtools.inspectedWindow) {
-                scanWithDevTools();
-            } else {
-                scanWithContentScript(tabs[0].id);
-            }
-        });
-    }
-
-    function scanWithDevTools() {
-        chrome.devtools.inspectedWindow.eval(
-            "(function() {" +
-            "    const stylesheets = Array.from(document.styleSheets);" +
-            "    const results = {" +
-            "        'Colors': []," +
-            "        'Spacing': []," +
-            "        'Typography': []," +
-            "        'Radius': []" +
-            "    };" +
-            "    let elementCounter = 0;" +
-            "    const selectorCache = new Map();" +
-            "    const breadcrumbCache = new Map();" +
-            "" +
-            "    function getCssSelector(el) {" +
-            "        const cacheKey = el.tagName + (el.id || '') + (el.className || '');" +
-            "        if (selectorCache.has(cacheKey)) {" +
-            "            return selectorCache.get(cacheKey);" +
-            "        }" +
-            "        " +
-            "        let selector;" +
-            "        if (el.id) {" +
-            "            selector = '#' + el.id;" +
-            "        } else if (el.className) {" +
-            "            let classNames;" +
-            "            if (typeof el.className === 'string') {" +
-            "                classNames = el.className.split(' ').filter(c => c.trim());" +
-            "            } else if (el.className && el.className.length) {" +
-            "                classNames = Array.from(el.className).filter(c => c.trim());" +
-            "            }" +
-            "            if (classNames && classNames.length > 0) {" +
-            "                selector = el.tagName.toLowerCase() + '.' + classNames.join('.');" +
-            "            } else {" +
-            "                selector = el.tagName.toLowerCase();" +
-            "            }" +
-            "        } else {" +
-            "            selector = el.tagName.toLowerCase();" +
-            "        }" +
-            "        " +
-            "        selectorCache.set(cacheKey, selector);" +
-            "        return selector;" +
-            "    }" +
-            "" +
-            "    function getBreadcrumbs(el) {" +
-            "        if (breadcrumbCache.has(el)) {" +
-            "            return breadcrumbCache.get(el);" +
-            "        }" +
-            "        " +
-            "        const breadcrumbs = [];" +
-            "        let current = el;" +
-            "        let depth = 0;" +
-            "        const maxDepth = 10;" +
-            "        " +
-            "        while (current && current !== document.body && depth < maxDepth) {" +
-            "            breadcrumbs.unshift(getCssSelector(current));" +
-            "            current = current.parentElement;" +
-            "            depth++;" +
-            "        }" +
-            "        " +
-            "        const result = breadcrumbs.join(' > ');" +
-            "        breadcrumbCache.set(el, result);" +
-            "        return result;" +
-            "    }" +
-            "" +
-            "    // Pre-compute element-rule mapping for better performance" +
-            "    const elementRuleMap = new Map();" +
-            "    const allElements = document.querySelectorAll('*');" +
-            "    " +
-            "    stylesheets.forEach((sheet, sheetIndex) => {" +
-            "        try {" +
-            "            const rules = Array.from(sheet.cssRules || sheet.rules || []);" +
-            "            rules.forEach((rule, ruleIndex) => {" +
-            "                if (rule.style) {" +
-            "                    try {" +
-            "                        const matchingElements = document.querySelectorAll(rule.selectorText);" +
-            "                        matchingElements.forEach(element => {" +
-            "                            if (!elementRuleMap.has(element)) {" +
-            "                                elementRuleMap.set(element, []);" +
-            "                            }" +
-            "                            elementRuleMap.get(element).push({" +
-            "                                rule: rule," +
-            "                                style: rule.style," +
-            "                                selector: rule.selectorText," +
-            "                                sheetIndex: sheetIndex," +
-            "                                ruleIndex: ruleIndex" +
-            "                            });" +
-            "                        });" +
-            "                    } catch (e) {" +
-            "                        // Invalid selector, skip" +
-            "                    }" +
-            "                }" +
-            "            });" +
-            "        } catch (e) {" +
-            "            // Cross-origin stylesheet, skip" +
-            "        }" +
-            "    });" +
-            "" +
-            "    // Process elements with their pre-matched rules" +
-            "    elementRuleMap.forEach((elementRules, element) => {" +
-            "        if (element.tagName === 'SCRIPT' || element.tagName === 'STYLE' || " +
-            "            element.tagName === 'NOSCRIPT' || element.tagName === 'META') {" +
-            "            return;" +
-            "        }" +
-            "        " +
-            "        elementRules.forEach(ruleData => {" +
-            "            const style = ruleData.style;" +
-            "            const propertiesToCheck = {" +
-            "                'color': { name: 'color', category: 'Colors' }," +
-            "                'background-color': { name: 'background-color', category: 'Colors' }," +
-            "                'border-color': { name: 'border-color', category: 'Colors' }," +
-            "                'border-top-color': { name: 'border-top-color', category: 'Colors' }," +
-            "                'border-right-color': { name: 'border-right-color', category: 'Colors' }," +
-            "                'border-bottom-color': { name: 'border-bottom-color', category: 'Colors' }," +
-            "                'border-left-color': { name: 'border-left-color', category: 'Colors' }," +
-            "                'font-size': { name: 'font-size', category: 'Typography' }," +
-            "                'font-weight': { name: 'font-weight', category: 'Typography' }," +
-            "                'line-height': { name: 'line-height', category: 'Typography' }," +
-            "                'margin': { name: 'margin', category: 'Spacing' }," +
-            "                'padding': { name: 'padding', category: 'Spacing' }," +
-            "                'border-radius': { name: 'border-radius', category: 'Radius' }," +
-            "                'border-top-left-radius': { name: 'border-top-left-radius', category: 'Radius' }," +
-            "                'border-top-right-radius': { name: 'border-top-right-radius', category: 'Radius' }," +
-            "                'border-bottom-left-radius': { name: 'border-bottom-left-radius', category: 'Radius' }," +
-            "                'border-bottom-right-radius': { name: 'border-bottom-right-radius', category: 'Radius' }" +
-            "            };" +
-            "" +
-            "            Object.keys(propertiesToCheck).forEach(property => {" +
-            "                const value = style.getPropertyValue(property);" +
-            "                if (value && value.trim() && " +
-            "                    !value.startsWith('var(--') && " +
-            "                    !value.startsWith('inherit') && " +
-            "                    !value.startsWith('initial') &&" +
-            "                    value !== 'transparent' && " +
-            "                    value !== 'currentColor') {" +
-            "" +
-            "                    let originalValue = value;" +
-            "                    if (property.includes('color')) {" +
-            "                        if (value.match(/^rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)$/)) {" +
-            "                            const rgbMatch = value.match(/^rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)$/);" +
-            "                            const r = parseInt(rgbMatch[1]);" +
-            "                            const g = parseInt(rgbMatch[2]);" +
-            "                            const b = parseInt(rgbMatch[3]);" +
-            "                            const toHex = (n) => {" +
-            "                                const hex = n.toString(16);" +
-            "                                return hex.length === 1 ? '0' + hex : hex;" +
-            "                            };" +
-            "                            const hexColor = '#' + toHex(r) + toHex(g) + toHex(b);" +
-            "                            originalValue = hexColor;" +
-            "                        } else if (value.match(/^rgba\\([^)]+\\)$/)) {" +
-            "                            originalValue = value;" +
-            "                        } else {" +
-            "                            originalValue = value;" +
-            "                        }" +
-            "                    }" +
-            "" +
-            "                    const propertyInfo = propertiesToCheck[property];" +
-            "                    let shouldFlag = false;" +
-            "" +
-            "                    if (property.includes('color') && (" +
-            "                        value.match(/^#[0-9a-fA-F]{3,6}$/) ||" +
-            "                        value.match(/^rgb\\([^)]+\\)$/) ||" +
-            "                        value.match(/^rgba\\([^)]+\\)$/) ||" +
-            "                        value.match(/^hsl\\([^)]+\\)$/) ||" +
-            "                        value.match(/^hsla\\([^)]+\\)$/)" +
-            "                    )) {" +
-            "                        if (value !== 'rgba(0, 0, 0, 0)' &&" +
-            "                            value !== 'rgb(0, 0, 0)' &&" +
-            "                            value !== 'rgb(255, 255, 255)' &&" +
-            "                            value !== 'rgba(255, 255, 255, 1)' &&" +
-            "                            value !== '#000000' &&" +
-            "                            value !== '#ffffff' &&" +
-            "                            value !== '#000' &&" +
-            "                            value !== '#fff') {" +
-            "                            shouldFlag = true;" +
-            "                        }" +
-            "                    } else if (property.includes('margin') || property.includes('padding')) {" +
-            "                        if ((value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) && value !== '0px') {" +
-            "                            shouldFlag = true;" +
-            "                        }" +
-            "                    } else if (property.includes('font-size') || property.includes('font-weight') || property.includes('line-height')) {" +
-            "                        let shouldFlagTypography = false;" +
-            "                        if (property.includes('font-size')) {" +
-            "                            if (value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) {" +
-            "                                shouldFlagTypography = true;" +
-            "                            }" +
-            "                        } else if (property.includes('font-weight')) {" +
-            "                            if (value.match(/^\\d+$/)) {" +
-            "                                shouldFlagTypography = true;" +
-            "                            }" +
-            "                        } else if (property.includes('line-height')) {" +
-            "                            if (value.match(/^\\d+\\.\\d+$/) || " +
-            "                                value.match(/^\\d+em$/) || " +
-            "                                value.match(/^\\d+\\.\\d+em$/) || " +
-            "                                value.match(/^\\d+%$/) || " +
-            "                                value.match(/^\\d+\\.\\d+%$/) || " +
-            "                                value.match(/^\\d+px$/) || " +
-            "                                value.match(/^\\d+\\.\\d+px$/)) {" +
-            "                                shouldFlagTypography = true;" +
-            "                            }" +
-            "                        }" +
-            "                        if (shouldFlagTypography) {" +
-            "                            shouldFlag = true;" +
-            "                        }" +
-            "                    } else if (property.includes('border-radius')) {" +
-            "                        if (value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) {" +
-            "                            shouldFlag = true;" +
-            "                        }" +
-            "                    }" +
-            "" +
-            "                    if (shouldFlag) {" +
-            "                        const elementId = 'ds-lint-' + (++elementCounter);" +
-            "                        element.setAttribute('data-ds-lint-id', elementId);" +
-            "                        results[propertyInfo.category].push({" +
-            "                            elementId: elementId," +
-            "                            selector: getCssSelector(element)," +
-            "                            property: propertyInfo.name," +
-            "                            value: originalValue," +
-            "                            path: getBreadcrumbs(element)," +
-            "                            rule: ruleData.selector," +
-            "                            stylesheet: sheet.href || 'inline'" +
-            "                        });" +
-            "                    }" +
-            "                }" +
-            "            });" +
-            "        });" +
-            "    });" +
-            "" +
-            "    return results;" +
-            "})()",
-            function(result, isException) {
-                scannerState.style.display = 'none';
-                
-                if (isException) {
-                    console.error('Token Inspector: Error scanning page:', isException);
-                    return;
-                }
-
-                displayResults(result || []);
-            }
-        );
-    }
-
-    function scanWithContentScript(tabId) {
-        chrome.scripting.executeScript({ target: { tabId: tabId }, files: ['content.js'] }, () => {
-            // Wait a bit for the script to initialize
-            setTimeout(() => {
-                chrome.tabs.sendMessage(tabId, { action: 'runScan' });
-            }, 100);
-        });
-    }
-
+    // Listen for messages from content script
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         if (request.type === 'scanComplete') {
-            scannerState.style.display = 'none';
+            scanner.onScanComplete();
             displayResults(request.results);
         }
     });
 
+    // Display results with tab functionality (popup-specific)
     function displayResults(results) {
         resultsContainer.innerHTML = '';
 
-        // Handle both array format (old DevTools) and object format (new)
+        // Handle both array format (old) and object format (new)
         if (Array.isArray(results)) {
-            // Results from old DevTools API - convert to new format
-            if (results.length === 0) {
-                noResultsMessage.style.display = 'flex';
-                return;
-            }
-
-            // Convert to new category format
-            allResults = {};
+            // Convert array format to object format
+            const converted = {};
             results.forEach(item => {
-                const category = item.property.includes('Color') ? 'Colors' : 'Other Properties';
-                if (!allResults[category]) {
-                    allResults[category] = [];
+                let category = 'Other Properties';
+                if (item.category === 'Colors' || item.property.includes('Color')) {
+                    category = 'Colors';
+                } else if (item.category === 'Typography' || item.property.includes('Font') || item.property.includes('Line')) {
+                    category = 'Typography';
+                } else if (item.category === 'Spacing' || item.property.includes('Margin') || item.property.includes('Padding')) {
+                    category = 'Spacing';
+                } else if (item.category === 'Radius' || item.property.includes('Radius')) {
+                    category = 'Radius';
                 }
-                allResults[category].push(item);
+                
+                if (!converted[category]) {
+                    converted[category] = [];
+                }
+                converted[category].push(item);
             });
-        } else {
-            // Results from content script or new DevTools format
-            allResults = results;
+            results = converted;
         }
 
+        // Store results for category tabs
+        allResults = results;
+
         // Check if we have any results
-        const totalIssues = Object.values(allResults).reduce((sum, items) => sum + items.length, 0);
+        const totalIssues = Object.values(results).reduce((sum, items) => sum + items.length, 0);
         if (totalIssues === 0) {
             noResultsMessage.style.display = 'flex';
             return;
@@ -336,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (allCount) allCount.textContent = totalIssues;
         
         // Update individual category counts
-        const categories = ['Colors', 'Spacing', 'Typography', 'Radius'];
+        const categories = ['Colors', 'Typography', 'Spacing', 'Radius'];
         categories.forEach(category => {
             const countElement = document.getElementById(category.toLowerCase() + '-count');
             if (countElement) {
@@ -382,12 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsContainer.appendChild(section);
             }
         }
-    }
-
-    function formatCssValue(value) {
-        // Return the original value as-is to preserve the CSS format
-        // This ensures hex values stay hex, rgb values stay rgb, etc.
-        return value;
     }
 
     function createCategorySection(category, items) {
@@ -525,5 +278,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
 
-    startScan();
+    function formatCssValue(value) {
+        // Return the original value as-is to preserve the CSS format
+        // This ensures hex values stay hex, rgb values stay rgb, etc.
+        return value;
+    }
+
+    // Start scanning automatically when popup opens
+    scanner.startScan();
 });

@@ -6,7 +6,15 @@
   "description": "A Chrome extension to inspect and analyze design tokens and hard-coded CSS values on webpages.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
   ],
   "devtools_page": "devtools.html",
   "action": {
