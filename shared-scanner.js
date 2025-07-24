@@ -34,8 +34,23 @@ class TokenInspectorScanner {
             
             // Wait a bit for the script to initialize, then send message
             setTimeout(() => {
-                chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, { action: 'runScan' });
-            }, 100);
+                chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, { action: 'runScan' })
+                    .then(response => {
+                        console.log('Token Inspector DevTools: Scan message sent, response:', response);
+                        if (response && response.success && response.results) {
+                            // Results received immediately
+                            this.onScanComplete();
+                            this.onResultsReady(response.results);
+                        } else {
+                            // Wait for async results via message listener
+                            console.log('Token Inspector DevTools: Waiting for async scan results...');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Token Inspector DevTools: Error sending scan message:', err);
+                        this.onError(err);
+                    });
+            }, 200); // Increased wait time for content script initialization
         }).catch(err => {
             console.log('Token Inspector DevTools: Content script injection failed:', err);
             this.onError(err);
@@ -59,7 +74,22 @@ class TokenInspectorScanner {
             }, () => {
                 // Wait a bit for the script to initialize
                 setTimeout(() => {
-                    chrome.tabs.sendMessage(tabId, { action: 'runScan' });
+                    chrome.tabs.sendMessage(tabId, { action: 'runScan' })
+                        .then(response => {
+                            console.log('Token Inspector Popup: Scan message sent, response:', response);
+                            if (response && response.success && response.results) {
+                                // Results received immediately
+                                this.onScanComplete();
+                                this.onResultsReady(response.results);
+                            } else {
+                                // Wait for async results via message listener
+                                console.log('Token Inspector Popup: Waiting for async scan results...');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Token Inspector Popup: Error sending scan message:', err);
+                            this.onError(err);
+                        });
                 }, 100);
             });
         });

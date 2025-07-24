@@ -6,11 +6,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryTabs = document.getElementById('category-tabs');
     let allResults = {};
     let currentCategory = 'all';
+    let scanInProgress = false;
+    let contentScriptReady = false;
 
     // Initialize the shared scanner for devtools
     const scanner = new TokenInspectorScanner({
         isDevTools: true,
         onScanStart: () => {
+            scanInProgress = true;
             scanButton.disabled = true;
             scannerState.style.display = 'flex';
             resultsContainer.style.display = 'none';
@@ -18,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             categoryTabs.style.display = 'none';
         },
         onScanComplete: () => {
+            scanInProgress = false;
             scanButton.disabled = false;
             scannerState.style.display = 'none';
         },
@@ -26,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         onError: (error) => {
             console.error('Token Inspector DevTools: Error:', error);
+            scanInProgress = false;
             scanButton.disabled = false;
             scannerState.style.display = 'none';
         }
@@ -34,10 +39,137 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for messages from content script
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         if (request.type === 'scanComplete') {
+            console.log('Token Inspector DevTools: Received scan results:', request.results);
             scanner.onScanComplete();
             displayResults(request.results);
+        } else if (request.type === 'contentScriptReady') {
+            console.log('Token Inspector DevTools: Content script is ready');
+            contentScriptReady = true;
         }
     });
+
+    // Enhanced scanning function for devtools
+    function performDevToolsScan() {
+        if (scanInProgress) {
+            console.log('Token Inspector DevTools: Scan already in progress, skipping...');
+            return;
+        }
+
+        console.log('Token Inspector DevTools: Starting enhanced scan...');
+        scanInProgress = true;
+        scanButton.disabled = true;
+        scannerState.style.display = 'flex';
+        resultsContainer.style.display = 'none';
+        noResultsMessage.style.display = 'none';
+        categoryTabs.style.display = 'none';
+
+        // First, ensure content script is injected
+        chrome.scripting.executeScript({
+            target: { tabId: chrome.devtools.inspectedWindow.tabId },
+            files: ['content.js']
+        }).then(() => {
+            console.log('Token Inspector DevTools: Content script injected successfully');
+            
+            // Wait for content script to initialize and signal it's ready
+            const waitForContentScript = () => {
+                if (contentScriptReady) {
+                    console.log('Token Inspector DevTools: Content script is ready, triggering scan...');
+                    triggerScan();
+                } else {
+                    console.log('Token Inspector DevTools: Waiting for content script to be ready...');
+                    setTimeout(waitForContentScript, 100);
+                }
+            };
+            
+            // Start waiting for content script
+            setTimeout(waitForContentScript, 100);
+            
+            // Also try to trigger scan after a reasonable timeout
+            setTimeout(() => {
+                if (!contentScriptReady) {
+                    console.log('Token Inspector DevTools: Content script timeout, trying scan anyway...');
+                    triggerScan();
+                }
+            }, 3000);
+            
+        }).catch(err => {
+            console.error('Token Inspector DevTools: Content script injection failed:', err);
+            
+            // Show user-friendly error message
+            scannerState.innerHTML = `
+                <div class="scanner-content">
+                    <div style="color: #ff6b6b; margin-bottom: 10px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                    </div>
+                    <p>Cannot scan this page</p>
+                    <p style="font-size: 11px; color: #999; margin-top: 5px;">
+                        This page cannot be scanned due to browser security restrictions.
+                        Try opening a regular website (http:// or https://) instead of a local file.
+                    </p>
+                </div>
+            `;
+            
+            scanInProgress = false;
+            scanButton.disabled = false;
+        });
+    }
+
+    function triggerScan() {
+        console.log('Token Inspector DevTools: Triggering scan...');
+        
+        // First check if we can communicate with the content script
+        chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, { action: 'ping' })
+            .then(response => {
+                console.log('Token Inspector DevTools: Ping response:', response);
+                if (response && response.success) {
+                    // Content script is responsive, proceed with scan
+                    return chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, { action: 'runScan' });
+                } else {
+                    throw new Error('Content script not responsive');
+                }
+            })
+            .then(response => {
+                console.log('Token Inspector DevTools: Scan message sent, response:', response);
+                if (response && response.success && response.results) {
+                    // Results received immediately
+                    scanInProgress = false;
+                    scanButton.disabled = false;
+                    scannerState.style.display = 'none';
+                    displayResults(response.results);
+                } else {
+                    // Wait for async results via message listener
+                    console.log('Token Inspector DevTools: Waiting for async scan results...');
+                }
+            })
+            .catch(err => {
+                console.error('Token Inspector DevTools: Error sending scan message:', err);
+                
+                // Show user-friendly error message
+                scannerState.innerHTML = `
+                    <div class="scanner-content">
+                        <div style="color: #ff6b6b; margin-bottom: 10px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                        </div>
+                        <p>Cannot communicate with page</p>
+                        <p style="font-size: 11px; color: #999; margin-top: 5px;">
+                            The content script is not available on this page.
+                            Try refreshing the page or opening a different website.
+                        </p>
+                    </div>
+                `;
+                
+                scanInProgress = false;
+                scanButton.disabled = false;
+            });
+    }
 
     // Display results with tab functionality (same as popup)
     function displayResults(results) {
@@ -280,12 +412,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add click handler for scan button
     scanButton.addEventListener('click', () => {
-        scanner.startScan();
+        performDevToolsScan();
     });
 
-    // Start scanning automatically when panel loads
+    // Start scanning automatically when panel loads with better timing
+    console.log('Token Inspector DevTools: Panel loaded, starting automatic scan...');
+    
+    // Wait for panel to be fully ready, then start scan
     setTimeout(() => {
         console.log('Token Inspector DevTools: Starting automatic scan...');
-        scanner.startScan();
-    }, 1000);
+        performDevToolsScan();
+    }, 2000); // Increased delay to ensure everything is ready
 }); 

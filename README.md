@@ -10,7 +10,7 @@ A powerful Chrome extension that helps developers and designers inspect and anal
 - **Developer Tools Integration**: Dedicated panel in Chrome DevTools for advanced analysis
 - **Performance Optimized**: Efficient scanning algorithms with minimal impact on page performance
 - **Shared Scanning Module**: Reusable scanning logic for consistent analysis across popup and DevTools
-- **Enhanced Testing**: Comprehensive test files for various scenarios and performance benchmarking
+- **Enhanced Testing**: Comprehensive test files for various scenarios
 
 ## Installation
 
@@ -55,12 +55,10 @@ A powerful Chrome extension that helps developers and designers inspect and anal
 
 ## Test Files
 
-The repository includes several test files to demonstrate the extension's capabilities:
+The repository includes test files to demonstrate the extension's capabilities:
 
 - `simple-test.html`: Basic test cases for common violations
 - `complext-test.html`: Complex scenarios with nested elements
-- `performance-test.html`: Performance testing with large DOM structures
-- `test-devtools.html`: DevTools-specific testing scenarios
 
 ## Development
 
@@ -77,8 +75,9 @@ token-inspector/
 ├── panel.js               # DevTools panel functionality
 ├── devtools.html          # DevTools integration
 ├── devtools.js            # DevTools setup
-├── OPTIMIZATION_NOTES.md  # Performance optimization details
-└── test files/            # Various test scenarios
+├── simple-test.html       # Basic test scenarios
+├── complext-test.html     # Complex test scenarios
+└── README.md              # Project documentation
 ```
 
 ### Key Components
@@ -106,15 +105,13 @@ The extension has been significantly optimized for performance with the followin
 - **Optimized Element Matching**: Uses `element.matches()` for efficient matching
 - **Memory Management**: Proper cache cleanup and management
 
-See `OPTIMIZATION_NOTES.md` for detailed performance considerations and implementation details.
-
 ## Recent Updates
 
-### Version 1.0 Updates:
-- **New Shared Scanner Module**: Added `shared-scanner.js` for consistent scanning logic
-- **Enhanced Content Scripts**: Improved manifest.json with proper content script configuration
-- **Additional Testing**: New `test-devtools.html` for DevTools-specific testing
-- **Performance Improvements**: Major optimizations across all scanning components
+### Version 1.1 Updates:
+- **Code Cleanup**: Removed unnecessary test files and server scripts
+- **Streamlined Project Structure**: Focused on core functionality and essential test files
+- **Updated Documentation**: Refreshed README with current project state
+- **Performance Improvements**: Maintained all existing performance optimizations
 - **Better Error Handling**: Improved error handling and user feedback
 - **Enhanced UI**: Updated popup and panel interfaces for better user experience
 
@@ -135,8 +132,6 @@ The extension is optimized for performance with the following features:
 - Non-blocking UI updates
 - Pre-computed element-rule mappings
 - Optimized CSS selector processing
-
-See `OPTIMIZATION_NOTES.md` for detailed performance considerations and implementation details.
 
 ## License
 

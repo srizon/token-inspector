@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (request.type === 'scanComplete') {
             scanner.onScanComplete();
             displayResults(request.results);
+        } else if (request.type === 'contentScriptReady') {
+            console.log('Token Inspector Popup: Content script is ready');
         }
     });
 

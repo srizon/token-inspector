@@ -2,6 +2,7 @@
     // Use a namespace on the window object to avoid collisions and manage state.
     window.dsLint = window.dsLint || {};
     window.dsLint.elementMap = window.dsLint.elementMap || new Map();
+    window.dsLint.isInitialized = window.dsLint.isInitialized || false;
 
     // --- Inspector Logic ---
     // This function is defined once and can be called by the persistent listener.
@@ -44,7 +45,7 @@
             }
         }
         
-                    console.log('Token Inspector: Looking for element with ID:', elementId, 'Found:', !!targetElement);
+        console.log('Token Inspector: Looking for element with ID:', elementId, 'Found:', !!targetElement);
         
         if (targetElement) {
             console.log('Token Inspector: Highlighting element:', targetElement);
@@ -69,23 +70,41 @@
         }
     };
 
-    // Attach the inspector listener only once per page load.
-    if (!window.dsLint.listenerAttached) {
+    // Initialize the content script
+    function initializeContentScript() {
+        if (window.dsLint.isInitialized) {
+            console.log('Token Inspector: Content script already initialized');
+            return;
+        }
+
+        console.log('Token Inspector: Initializing content script...');
+        
+        // Attach the inspector listener only once per page load.
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             console.log('Token Inspector: Received message:', request);
-            if (request.action === 'inspectElement') {
+            
+            if (request.action === 'ping') {
+                console.log('Token Inspector: Responding to ping');
+                sendResponse({ success: true, message: 'Content script is ready' });
+            } else if (request.action === 'inspectElement') {
                 window.dsLint.inspectAndHighlight(request.elementId);
                 sendResponse({ success: true });
             } else if (request.action === 'runScan') {
-                window.dsLint.runScan();
-                // Return results immediately if available, otherwise wait for scan to complete
-                if (window.dsLint.finalResults) {
-                    sendResponse({ success: true, results: window.dsLint.finalResults });
+                console.log('Token Inspector: Running scan...');
+                
+                // Run the scan
+                const results = window.dsLint.runScan();
+                
+                // If we have immediate results, send them back
+                if (results && Object.keys(results).length > 0) {
+                    console.log('Token Inspector: Sending immediate results:', results);
+                    sendResponse({ success: true, results: results });
                 } else {
                     // Wait for scan to complete
                     const checkResults = setInterval(() => {
                         if (window.dsLint.finalResults) {
                             clearInterval(checkResults);
+                            console.log('Token Inspector: Sending async results:', window.dsLint.finalResults);
                             sendResponse({ success: true, results: window.dsLint.finalResults });
                         }
                     }, 50);
@@ -93,7 +112,8 @@
                     // Timeout after 5 seconds
                     setTimeout(() => {
                         clearInterval(checkResults);
-                        sendResponse({ success: false, error: 'Scan timeout' });
+                        console.log('Token Inspector: Scan timeout, sending empty results');
+                        sendResponse({ success: false, error: 'Scan timeout', results: {} });
                     }, 5000);
                 }
                 return true; // Keep message channel open for async response
@@ -102,7 +122,15 @@
                 sendResponse({ success: true });
             }
         });
-        window.dsLint.listenerAttached = true;
+        
+        window.dsLint.isInitialized = true;
+        console.log('Token Inspector: Content script initialized successfully');
+        
+        // Send ready signal to devtools/popup
+        setTimeout(() => {
+            console.log('Token Inspector: Sending ready signal...');
+            chrome.runtime.sendMessage({ type: 'contentScriptReady' });
+        }, 100);
     }
 
     // Add function to clear highlight
@@ -176,6 +204,9 @@
         
         // Send results back to the requester (popup or devtools)
         chrome.runtime.sendMessage({ type: 'scanComplete', results: finalResults });
+        
+        // Return results for immediate response
+        return finalResults;
     };
     
     // --- Optimized Scanner Setup ---
@@ -319,8 +350,6 @@
             
             return { rules, elementRuleMap };
         }
-
-
 
         // Process styles for a single element
         function processElementStyles(element, style, results) {
@@ -487,15 +516,19 @@
         return { findAndMarkElementsUsingVars, findHardcodedValues };
     }
 
-    // --- Execute Scan ---
-    console.log('Token Inspector Content Script: Initializing...');
-    console.log('Token Inspector Content Script: runScan function available:', typeof window.dsLint.runScan);
+    // --- Initialize and Execute ---
+    console.log('Token Inspector Content Script: Starting initialization...');
+    
+    // Initialize the content script
+    initializeContentScript();
     
     // Add a simple test to verify the script is working
     console.log('Token Inspector Content Script: Testing basic functionality...');
     const testElements = document.querySelectorAll('.bad-element-1, .bad-element-2, .bad-element-3');
     console.log('Token Inspector Content Script: Found test elements:', testElements.length);
     
+    // Run initial scan
+    console.log('Token Inspector Content Script: Running initial scan...');
     window.dsLint.runScan();
 
 })();
