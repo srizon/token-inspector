@@ -131,8 +131,8 @@
         }
         window.dsLint.elementMap.clear();
 
-        // 2. Run the full, comprehensive scan
-        const { findAndMarkElementsUsingVars, findHardcodedValues } = setupScanner();
+        // 2. Run the optimized scan
+        const { findAndMarkElementsUsingVars, findHardcodedValues } = setupOptimizedScanner();
         findAndMarkElementsUsingVars();
         const finalResults = findHardcodedValues();
 
@@ -140,84 +140,90 @@
         chrome.runtime.sendMessage({ type: 'scanComplete', results: finalResults });
     }
     
-    // --- Scanner Setup ---
-    // Encapsulates all scanning logic to keep the main function clean.
-    function setupScanner() {
+    // --- Optimized Scanner Setup ---
+    function setupOptimizedScanner() {
         const elementsUsingVar = new Map();
         let elementCounter = 0;
-        const defaultStylesCache = {};
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-        const defaultView = iframe.contentWindow;
-
-        function getTrueDefaultStyle(tagName) {
-            if (defaultStylesCache[tagName]) {
-                return defaultStylesCache[tagName];
-            }
-            
-            const tempElement = defaultView.document.createElement(tagName);
-            defaultView.document.body.appendChild(tempElement);
-            const computedStyle = defaultView.getComputedStyle(tempElement);
-            const defaultStyle = {
-                color: computedStyle.color,
-                backgroundColor: computedStyle.backgroundColor,
-                borderColor: computedStyle.borderColor
-            };
-            defaultView.document.body.removeChild(tempElement);
-            defaultStylesCache[tagName] = defaultStyle;
-            return defaultStyle;
-        }
-
+        
+        // Cache for expensive operations
+        const selectorCache = new Map();
+        const breadcrumbCache = new Map();
+        const cssRulesCache = new Map();
+        
+        // Properties to check with their categories
         const propertiesToCheck = {
-            'color': { name: 'Text Color', category: 'Colors' },
-            'background-color': { name: 'Background Color', category: 'Colors' },
-            'border-color': { name: 'Border Color', category: 'Colors' },
-            'border-top-color': { name: 'Border Top Color', category: 'Colors' },
-            'border-right-color': { name: 'Border Right Color', category: 'Colors' },
-            'border-bottom-color': { name: 'Border Bottom Color', category: 'Colors' },
-            'border-left-color': { name: 'Border Left Color', category: 'Colors' },
-            'font-size': { name: 'Font Size', category: 'Typography' },
-            'font-weight': { name: 'Font Weight', category: 'Typography' },
-            'line-height': { name: 'Line Height', category: 'Typography' },
-            'margin': { name: 'Margin', category: 'Spacing' },
-            'padding': { name: 'Padding', category: 'Spacing' },
-            'border-radius': { name: 'Border Radius', category: 'Radius' },
-            'border-top-left-radius': { name: 'Border Top Left Radius', category: 'Radius' },
-            'border-top-right-radius': { name: 'Border Top Right Radius', category: 'Radius' },
-            'border-bottom-left-radius': { name: 'Border Bottom Left Radius', category: 'Radius' },
-            'border-bottom-right-radius': { name: 'Border Bottom Right Radius', category: 'Radius' },
-            'width': { name: 'Width', category: 'Layout' },
-            'height': { name: 'Height', category: 'Layout' }
+            'color': { name: 'color', category: 'Colors' },
+            'background-color': { name: 'background-color', category: 'Colors' },
+            'border-color': { name: 'border-color', category: 'Colors' },
+            'border-top-color': { name: 'border-top-color', category: 'Colors' },
+            'border-right-color': { name: 'border-right-color', category: 'Colors' },
+            'border-bottom-color': { name: 'border-bottom-color', category: 'Colors' },
+            'border-left-color': { name: 'border-left-color', category: 'Colors' },
+            'font-size': { name: 'font-size', category: 'Typography' },
+            'font-weight': { name: 'font-weight', category: 'Typography' },
+            'line-height': { name: 'line-height', category: 'Typography' },
+            'margin': { name: 'margin', category: 'Spacing' },
+            'padding': { name: 'padding', category: 'Spacing' },
+            'border-radius': { name: 'border-radius', category: 'Radius' },
+            'border-top-left-radius': { name: 'border-top-left-radius', category: 'Radius' },
+            'border-top-right-radius': { name: 'border-top-right-radius', category: 'Radius' },
+            'border-bottom-left-radius': { name: 'border-bottom-left-radius', category: 'Radius' },
+            'border-bottom-right-radius': { name: 'border-bottom-right-radius', category: 'Radius' },
+            'width': { name: 'width', category: 'Layout' },
+            'height': { name: 'height', category: 'Layout' }
         };
 
+        // Optimized CSS selector generation with caching
         function getCssSelector(el) {
-            if (el.id) return `#${el.id}`;
-            if (el.className) {
-                // Handle both string and DOMTokenList
+            const cacheKey = el.tagName + (el.id || '') + (el.className || '');
+            if (selectorCache.has(cacheKey)) {
+                return selectorCache.get(cacheKey);
+            }
+            
+            let selector;
+            if (el.id) {
+                selector = `#${el.id}`;
+            } else if (el.className) {
                 let classNames;
                 if (typeof el.className === 'string') {
                     classNames = el.className.split(' ').filter(c => c.trim());
                 } else if (el.className && el.className.length) {
-                    // DOMTokenList
                     classNames = Array.from(el.className).filter(c => c.trim());
                 }
                 
                 if (classNames && classNames.length > 0) {
-                    return `${el.tagName.toLowerCase()}.${classNames.join('.')}`;
+                    selector = `${el.tagName.toLowerCase()}.${classNames.join('.')}`;
+                } else {
+                    selector = el.tagName.toLowerCase();
                 }
+            } else {
+                selector = el.tagName.toLowerCase();
             }
-            return el.tagName.toLowerCase();
+            
+            selectorCache.set(cacheKey, selector);
+            return selector;
         }
 
+        // Optimized breadcrumb generation with caching
         function getBreadcrumbs(el) {
+            if (breadcrumbCache.has(el)) {
+                return breadcrumbCache.get(el);
+            }
+            
             const breadcrumbs = [];
             let current = el;
-            while (current && current !== document.body) {
+            let depth = 0;
+            const maxDepth = 10; // Prevent infinite loops
+            
+            while (current && current !== document.body && depth < maxDepth) {
                 breadcrumbs.unshift(getCssSelector(current));
                 current = current.parentElement;
+                depth++;
             }
-            return breadcrumbs.join(' > ');
+            
+            const result = breadcrumbs.join(' > ');
+            breadcrumbCache.set(el, result);
+            return result;
         }
 
         function addVarUsage(element, property) {
@@ -228,149 +234,185 @@
             elementsUsingVar.get(key).push(element);
         }
 
-        function findStylesInNode(node) {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-                const element = node;
-                const tagName = element.tagName.toLowerCase();
-                
-                // Get all stylesheets and check CSS rules directly
-                const stylesheets = Array.from(document.styleSheets);
-                
-                stylesheets.forEach((sheet, sheetIndex) => {
+        // Optimized CSS rule processing with caching and element matching
+        function processCssRules() {
+            const rules = [];
+            const elementRuleMap = new Map(); // Map elements to their applicable rules
+            const stylesheets = Array.from(document.styleSheets);
+            
+            // First pass: collect all rules
+            stylesheets.forEach((sheet, sheetIndex) => {
+                try {
+                    const sheetRules = Array.from(sheet.cssRules || sheet.rules || []);
+                    sheetRules.forEach((rule, ruleIndex) => {
+                        if (rule.style) {
+                            rules.push({
+                                rule: rule,
+                                selector: rule.selectorText,
+                                style: rule.style,
+                                sheetIndex: sheetIndex,
+                                ruleIndex: ruleIndex
+                            });
+                        }
+                    });
+                } catch (e) {
+                    // Cross-origin stylesheet, skip
+                }
+            });
+            
+            // Second pass: pre-compute which elements match which rules
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(element => {
+                const elementRules = [];
+                rules.forEach(ruleData => {
                     try {
-                        const rules = Array.from(sheet.cssRules || sheet.rules || []);
-                        
-                        rules.forEach((rule, ruleIndex) => {
-                            if (rule.style) {
-                                const style = rule.style;
-                                
-                                // Check if this element matches the rule
-                                try {
-                                    const matchingElements = document.querySelectorAll(rule.selectorText);
-                                    if (Array.from(matchingElements).includes(element)) {
-                                        Object.keys(propertiesToCheck).forEach(property => {
-                                            const value = style.getPropertyValue(property);
-                                            if (value && value.trim() && 
-                                                !value.startsWith('var(--') && 
-                                                !value.startsWith('inherit') && 
-                                                !value.startsWith('initial') &&
-                                                value !== 'transparent' && 
-                                                value !== 'currentColor') {
-                                                
-                                                // Try to get the original value format for colors
-                                                let originalValue = value;
-                                                if (property.includes('color')) {
-                                                    try {
-                                                        // Check if we can get the original declaration
-                                                        const cssText = style.cssText;
-                                                        const propertyMatch = new RegExp(`${property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;]+)`, 'i');
-                                                        const match = cssText.match(propertyMatch);
-                                                        if (match && match[1]) {
-                                                            const extractedValue = match[1].trim();
-                                                            // If the extracted value is in hex format, use it
-                                                            if (extractedValue.match(/^#[0-9a-fA-F]{3,6}$/)) {
-                                                                originalValue = extractedValue;
-                                                            }
-                                                        }
-                                                    } catch (e) {
-                                                        // Fall back to the computed value
-                                                    }
-                                                }
-                                                
-                                                const propertyInfo = propertiesToCheck[property];
-                                                let shouldFlag = false;
-                                                let category = '';
-                                                
-                                                // Check for hardcoded colors
-                                                if (property.includes('color') && (
-                                                    value.match(/^#[0-9a-fA-F]{3,6}$/) ||
-                                                    value.match(/^rgb\([^)]+\)$/) ||
-                                                    value.match(/^rgba\([^)]+\)$/) ||
-                                                    value.match(/^hsl\([^)]+\)$/) ||
-                                                    value.match(/^hsla\([^)]+\)$/)
-                                                )) {
-                                                    // Skip common default colors and transparent values
-                                                    if (value !== 'rgba(0, 0, 0, 0)' &&
-                                                        value !== 'rgb(0, 0, 0)' &&
-                                                        value !== 'rgb(255, 255, 255)' &&
-                                                        value !== 'rgba(255, 255, 255, 1)' &&
-                                                        value !== '#000000' &&
-                                                        value !== '#ffffff' &&
-                                                        value !== '#000' &&
-                                                        value !== '#fff') {
-                                                        shouldFlag = true;
-                                                        category = 'Colors';
-                                                    }
-                                                }
-                                                // Check for hardcoded spacing values
-                                                else if (property.includes('margin') || property.includes('padding')) {
-                                                    if (value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) {
-                                                        shouldFlag = true;
-                                                        category = 'Spacing';
-                                                    }
-                                                }
-                                                // Check for hardcoded typography values
-                                                else if (property.includes('font-size') || property.includes('font-weight') || property.includes('line-height')) {
-                                                    if (value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/) || value.match(/^\d+$/)) {
-                                                        shouldFlag = true;
-                                                        category = 'Typography';
-                                                    }
-                                                }
-                                                // Check for hardcoded border radius values
-                                                else if (property.includes('border-radius')) {
-                                                    if (value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) {
-                                                        shouldFlag = true;
-                                                        category = 'Radius';
-                                                    }
-                                                }
-                                                
-                                                if (shouldFlag) {
-                                                    const elementId = `ds-lint-${++elementCounter}`;
-                                                    element.setAttribute('data-ds-lint-id', elementId);
-                                                    
-                                                    // Store mapping for highlighting
-                                                    window.dsLint.elementMap.set(elementId, {
-                                                        selector: getCssSelector(element),
-                                                        path: getBreadcrumbs(element)
-                                                    });
-                                                    
-                                                    if (!window.dsLint.results) window.dsLint.results = {};
-                                                    if (!window.dsLint.results[category]) {
-                                                        window.dsLint.results[category] = [];
-                                                    }
-                                                    
-                                                    window.dsLint.results[category].push({
-                                                        elementId: elementId,
-                                                        selector: getCssSelector(element),
-                                                        property: propertyInfo.name,
-                                                        value: originalValue,
-                                                        path: getBreadcrumbs(element)
-                                                    });
-                                                    
-                                                    // Debug: Log the element that was marked
-                                                    console.log('DS-Lint: Marked element', elementId, 'with value', value, 'for property', property);
-                                                }
-                                            } else if (value && value.startsWith('var(--')) {
-                                                // This element is using CSS variables - mark it as such
-                                                addVarUsage(element, property);
-                                            }
-                                        });
-                                    }
-                                } catch (e) {
-                                    // Invalid selector, skip
-                                }
-                            }
-                        });
+                        // Use matches() for more efficient element matching
+                        if (element.matches && element.matches(ruleData.selector)) {
+                            elementRules.push(ruleData);
+                        }
                     } catch (e) {
-                        // Cross-origin stylesheet, skip
+                        // Invalid selector, skip
                     }
                 });
-            }
+                if (elementRules.length > 0) {
+                    elementRuleMap.set(element, elementRules);
+                }
+            });
             
-            // Recursively check child nodes
-            for (let child of node.childNodes) {
-                findStylesInNode(child);
-            }
+            return { rules, elementRuleMap };
+        }
+
+
+
+        // Process styles for a single element
+        function processElementStyles(element, style, results) {
+            Object.keys(propertiesToCheck).forEach(property => {
+                const value = style.getPropertyValue(property);
+                if (value && value.trim() && 
+                    !value.startsWith('var(--') && 
+                    !value.startsWith('inherit') && 
+                    !value.startsWith('initial') &&
+                    value !== 'transparent' && 
+                    value !== 'currentColor') {
+                    
+                    // Try to get the original value format for colors
+                    let originalValue = value;
+                    if (property.includes('color')) {
+                        if (value.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)) {
+                            const rgbMatch = value.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                            const r = parseInt(rgbMatch[1]);
+                            const g = parseInt(rgbMatch[2]);
+                            const b = parseInt(rgbMatch[3]);
+                            
+                            const toHex = (n) => {
+                                const hex = n.toString(16);
+                                return hex.length === 1 ? '0' + hex : hex;
+                            };
+                            
+                            const hexColor = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+                            originalValue = hexColor;
+                        } else if (value.match(/^rgba\([^)]+\)$/)) {
+                            originalValue = value;
+                        } else {
+                            originalValue = value;
+                        }
+                    }
+                    
+                    const propertyInfo = propertiesToCheck[property];
+                    let shouldFlag = false;
+                    let category = '';
+                    
+                    // Check for hardcoded colors
+                    if (property.includes('color') && (
+                        value.match(/^#[0-9a-fA-F]{3,6}$/) ||
+                        value.match(/^rgb\([^)]+\)$/) ||
+                        value.match(/^rgba\([^)]+\)$/) ||
+                        value.match(/^hsl\([^)]+\)$/) ||
+                        value.match(/^hsla\([^)]+\)$/)
+                    )) {
+                        if (value !== 'rgba(0, 0, 0, 0)' &&
+                            value !== 'rgb(0, 0, 0)' &&
+                            value !== 'rgb(255, 255, 255)' &&
+                            value !== 'rgba(255, 255, 255, 1)' &&
+                            value !== '#000000' &&
+                            value !== '#ffffff' &&
+                            value !== '#000' &&
+                            value !== '#fff') {
+                            shouldFlag = true;
+                            category = 'Colors';
+                        }
+                    }
+                    // Check for hardcoded spacing values
+                    else if (property.includes('margin') || property.includes('padding')) {
+                        if ((value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) && value !== '0px') {
+                            shouldFlag = true;
+                            category = 'Spacing';
+                        }
+                    }
+                    // Check for hardcoded typography values
+                    else if (property.includes('font-size') || property.includes('font-weight') || property.includes('line-height')) {
+                        let shouldFlagTypography = false;
+                        
+                        if (property.includes('font-size')) {
+                            if (value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) {
+                                shouldFlagTypography = true;
+                            }
+                        } else if (property.includes('font-weight')) {
+                            if (value.match(/^\d+$/)) {
+                                shouldFlagTypography = true;
+                            }
+                        } else if (property.includes('line-height')) {
+                            if (value.match(/^\d+\.\d+$/) || 
+                                value.match(/^\d+em$/) || 
+                                value.match(/^\d+\.\d+em$/) || 
+                                value.match(/^\d+%$/) || 
+                                value.match(/^\d+\.\d+%$/) || 
+                                value.match(/^\d+px$/) || 
+                                value.match(/^\d+\.\d+px$/)) {
+                                shouldFlagTypography = true;
+                            }
+                        }
+                        
+                        if (shouldFlagTypography) {
+                            shouldFlag = true;
+                            category = 'Typography';
+                        }
+                    }
+                    // Check for hardcoded border radius values
+                    else if (property.includes('border-radius')) {
+                        if (value.match(/^\d+px$/) || value.match(/^\d+\.\d+px$/)) {
+                            shouldFlag = true;
+                            category = 'Radius';
+                        }
+                    }
+                    
+                    if (shouldFlag) {
+                        const elementId = `ds-lint-${++elementCounter}`;
+                        element.setAttribute('data-ds-lint-id', elementId);
+                        
+                        // Store mapping for highlighting
+                        window.dsLint.elementMap.set(elementId, {
+                            selector: getCssSelector(element),
+                            path: getBreadcrumbs(element)
+                        });
+                        
+                        if (!window.dsLint.results) window.dsLint.results = {};
+                        if (!window.dsLint.results[category]) {
+                            window.dsLint.results[category] = [];
+                        }
+                        
+                        window.dsLint.results[category].push({
+                            elementId: elementId,
+                            selector: getCssSelector(element),
+                            property: propertyInfo.name,
+                            value: originalValue,
+                            path: getBreadcrumbs(element)
+                        });
+                    } else if (value && value.startsWith('var(--')) {
+                        addVarUsage(element, property);
+                    }
+                }
+            });
         }
 
         function findAndMarkElementsUsingVars() {
@@ -380,8 +422,23 @@
 
         function findHardcodedValues() {
             window.dsLint.results = {};
-            findStylesInNode(document.body);
-            document.body.removeChild(iframe);
+            
+            // Get all CSS rules and element-rule mapping once
+            const { rules, elementRuleMap } = processCssRules();
+            
+            // Process all elements efficiently using pre-computed rule mapping
+            elementRuleMap.forEach((elementRules, element) => {
+                // Skip elements that are likely not relevant
+                if (element.tagName === 'SCRIPT' || element.tagName === 'STYLE' || 
+                    element.tagName === 'NOSCRIPT' || element.tagName === 'META') {
+                    return;
+                }
+                
+                // Process CSS rules for this element (already matched)
+                elementRules.forEach(ruleData => {
+                    processElementStyles(element, ruleData.style, window.dsLint.results);
+                });
+            });
             
             // Store results for highlighting purposes
             window.dsLint.scanResults = window.dsLint.results;

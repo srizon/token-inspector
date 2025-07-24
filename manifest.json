@@ -3,7 +3,7 @@
   "manifest_version": 3,
   "name": "DS-Lint",
   "version": "1.0",
-  "description": "A linter to detect hard-coded colors on a web page.",
+  "description": "A linter to detect hard-coded CSS values on webpages.",
   "permissions": [
     "activeTab",
     "scripting"

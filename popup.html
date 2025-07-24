@@ -5,24 +5,65 @@
     <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 <body>
-    <div class="header">
-        <h1>Design System Linter</h1>
-    </div>
-    <div id="scanner-state" class="scanner-state">
-        <div class="spinner"></div>
-        <p>Scanning for design violations...</p>
-    </div>
-    <div id="category-tabs" class="category-tabs" style="display: none;">
-        <button class="tab-button active" data-category="all">All</button>
-        <button class="tab-button" data-category="Colors">Colors</button>
-        <button class="tab-button" data-category="Spacing">Spacing</button>
-        <button class="tab-button" data-category="Typography">Typography</button>
-        <button class="tab-button" data-category="Radius">Radius</button>
-    </div>
-    <div id="results-container"></div>
-    <div id="no-results-message" class="no-results" style="display: none;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        <p>No hard-coded values found. Great job!</p>
+    <div class="app-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>Design System Linter</h1>
+            </div>
+        </div>
+
+        <div id="scanner-state" class="scanner-state">
+            <div class="scanner-content">
+                <div class="spinner"></div>
+                <p>Scanning for hardcoded components...</p>
+            </div>
+        </div>
+
+        <div id="category-tabs" class="category-tabs" style="display: none;">
+            <div class="tabs-container">
+                <button class="tab-button active" data-category="all">
+                    <span class="tab-label">All</span>
+                    <span class="tab-count" id="all-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Colors">
+                    <span class="tab-label">Color</span>
+                    <span class="tab-count" id="colors-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Typography">
+                    <span class="tab-label">Font</span>
+                    <span class="tab-count" id="typography-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Spacing">
+                    <span class="tab-label">Spacing</span>
+                    <span class="tab-count" id="spacing-count">0</span>
+                </button>
+                <button class="tab-button" data-category="Radius">
+                    <span class="tab-label">Radius</span>
+                    <span class="tab-count" id="radius-count">0</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="results-container" class="results-container"></div>
+
+        <div id="no-results-message" class="no-results" style="display: none;">
+            <div class="no-results-content">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                </div>
+                <h3>No violations found</h3>
+                <p>All values are properly using design tokens.</p>
+            </div>
+        </div>
     </div>
     <script src="popup.js"></script>
 </body>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Inspector Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .section h2 {
+            color: #555;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        /* Non-standard colors - will be flagged */
+        .bad-colors {
+            background-color: #ff6b6b;
+            color: #ffffff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        
+        .bad-colors-2 {
+            background-color: rgb(74, 144, 226);
+            color: hsl(0, 0%, 100%);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        
+        /* Non-standard spacing - will be flagged */
+        .bad-spacing {
+            margin: 25px;
+            padding: 18px;
+            width: 350px;
+            height: 120px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        /* Non-standard typography - will be flagged */
+        .bad-typography {
+            font-size: 19px;
+            line-height: 1.7;
+            font-weight: 600;
+            color: #333;
+            margin: 15px 0;
+        }
+        
+        /* Non-standard borders - will be flagged */
+        .bad-borders {
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #fafafa;
+        }
+        
+        /* Good examples using CSS variables (will NOT be flagged) */
+        .good-example {
+            color: var(--text-color, #333);
+            padding: var(--spacing-md, 1rem);
+            font-size: var(--font-size-base, 1rem);
+            border-radius: var(--border-radius-sm, 0.25rem);
+            background-color: var(--bg-color, #f8f9fa);
+            border: 1px solid var(--border-color, #dee2e6);
+        }
+        
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .info-box {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Token Inspector Test Page</h1>
+        <p>This page contains various non-standard design values that Token Inspector should detect. Install the extension and scan this page to see it in action!</p>
+        
+        <div class="section">
+            <h2>❌ Non-Standard Colors</h2>
+            <div class="bad-colors">
+                This element uses hex color #ff6b6b (should use a design token)
+            </div>
+            <div class="bad-colors-2">
+                This element uses rgb(74, 144, 226) and hsl(0, 0%, 100%) (should use design tokens)
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>❌ Non-Standard Spacing</h2>
+            <div class="bad-spacing">
+                This element uses pixel values for margin (25px), padding (18px), width (350px), and height (120px)
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>❌ Non-Standard Typography</h2>
+            <div class="bad-typography">
+                This text uses font-size: 19px and line-height: 1.7 (should use design tokens)
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>❌ Non-Standard Borders</h2>
+            <div class="bad-borders">
+                This element uses border-radius: 10px and border-width: 3px (should use design tokens)
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>✅ Good Examples (Using CSS Variables)</h2>
+            <div class="good-example">
+                This element uses CSS variables and should NOT be flagged by Token Inspector.
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🎯 Interactive Elements</h2>
+            <button class="button">Button with non-standard colors</button>
+            <div class="card">
+                <h3>Card Component</h3>
+                <p>This card uses various non-standard values that should be detected.</p>
+            </div>
+            <div class="alert">
+                Alert message with non-standard styling
+            </div>
+            <div class="info-box">
+                Info box with non-standard colors and spacing
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📋 Instructions</h2>
+            <ol>
+                <li>Install the Token Inspector Chrome extension</li>
+                <li>Click the extension icon in your browser toolbar</li>
+                <li>Click "Scan Page" to analyze this page</li>
+                <li>Review the results and click on issues to highlight elements</li>
+                <li>Notice how elements with non-standard values are flagged</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html> 

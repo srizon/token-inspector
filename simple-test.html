@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Variable Detection Test</title>
+    <style>
+        :root {
+            --text-dark-on-inverse: #333;
+            --spacing-md: 1rem;
+            --font-size-base: 16px;
+            --border-radius-sm: 4px;
+        }
+        
+        .test-element-1 {
+            color: var(--text-dark-on-inverse);
+        }
+        
+        .test-element-2 {
+            color: var(--text-dark-on-inverse, #333);
+        }
+        
+        .test-element-3 {
+            color: var( --text-dark-on-inverse );
+        }
+        
+        .test-element-4 {
+            color: var( --text-dark-on-inverse , #333 );
+        }
+        
+        .test-element-5 {
+            padding: var(--spacing-md);
+        }
+        
+        .test-element-6 {
+            font-size: var(--font-size-base);
+        }
+        
+        .test-element-7 {
+            border-radius: var(--border-radius-sm);
+        }
+        
+        /* These should still be flagged as non-standard */
+        .bad-element-1 {
+            color: #ff6b6b;
+        }
+        
+        .bad-element-2 {
+            color: rgb(74, 144, 226);
+        }
+        
+        .bad-element-3 {
+            padding: 25px;
+        }
+        
+        .zero-spacing-element {
+            margin: 0px;
+            padding: 0px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Variable Detection Test</h1>
+    <p>This page tests the updated CSS variable detection in Token Inspector.</p>
+    
+    <div class="test-element-1">
+        This uses: color: var(--text-dark-on-inverse) - should NOT be flagged
+    </div>
+    
+    <div class="test-element-2">
+        This uses: color: var(--text-dark-on-inverse, #333) - should NOT be flagged
+    </div>
+    
+    <div class="test-element-3">
+        This uses: color: var( --text-dark-on-inverse ) - should NOT be flagged
+    </div>
+    
+    <div class="test-element-4">
+        This uses: color: var( --text-dark-on-inverse , #333 ) - should NOT be flagged
+    </div>
+    
+    <div class="test-element-5">
+        This uses: padding: var(--spacing-md) - should NOT be flagged
+    </div>
+    
+    <div class="test-element-6">
+        This uses: font-size: var(--font-size-base) - should NOT be flagged
+    </div>
+    
+    <div class="test-element-7">
+        This uses: border-radius: var(--border-radius-sm) - should NOT be flagged
+    </div>
+    
+    <hr>
+    
+    <div class="bad-element-1">
+        This uses: color: #ff6b6b - SHOULD be flagged
+    </div>
+    
+    <div class="bad-element-2">
+        This uses: color: rgb(74, 144, 226) - SHOULD be flagged
+    </div>
+    
+    <div class="bad-element-3">
+        This uses: padding: 25px - SHOULD be flagged
+    </div>
+    
+    <div class="zero-spacing-element">
+        This uses: margin: 0px and padding: 0px - should NOT be flagged (0px is ignored)
+    </div>
+</body>
+</html> 

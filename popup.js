@@ -25,201 +25,245 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function scanWithDevTools() {
-        chrome.devtools.inspectedWindow.eval(`
-            (function() {
-                // Get all stylesheets
-                const stylesheets = Array.from(document.styleSheets);
-                const results = {
-                    'Colors': [],
-                    'Spacing': [],
-                    'Typography': [],
-                    'Radius': []
-                };
-                let elementCounter = 0;
-
-                function getCssSelector(el) {
-                    if (el.id) return '#' + el.id;
-                    if (el.className) {
-                        // Handle both string and DOMTokenList
-                        let classNames;
-                        if (typeof el.className === 'string') {
-                            classNames = el.className.split(' ').filter(c => c.trim());
-                        } else if (el.className && el.className.length) {
-                            // DOMTokenList
-                            classNames = Array.from(el.className).filter(c => c.trim());
-                        }
-                        
-                        if (classNames && classNames.length > 0) {
-                            return el.tagName.toLowerCase() + '.' + classNames.join('.');
-                        }
-                    }
-                    return el.tagName.toLowerCase();
+        chrome.devtools.inspectedWindow.eval(
+            "(function() {" +
+            "    const stylesheets = Array.from(document.styleSheets);" +
+            "    const results = {" +
+            "        'Colors': []," +
+            "        'Spacing': []," +
+            "        'Typography': []," +
+            "        'Radius': []" +
+            "    };" +
+            "    let elementCounter = 0;" +
+            "    const selectorCache = new Map();" +
+            "    const breadcrumbCache = new Map();" +
+            "" +
+            "    function getCssSelector(el) {" +
+            "        const cacheKey = el.tagName + (el.id || '') + (el.className || '');" +
+            "        if (selectorCache.has(cacheKey)) {" +
+            "            return selectorCache.get(cacheKey);" +
+            "        }" +
+            "        " +
+            "        let selector;" +
+            "        if (el.id) {" +
+            "            selector = '#' + el.id;" +
+            "        } else if (el.className) {" +
+            "            let classNames;" +
+            "            if (typeof el.className === 'string') {" +
+            "                classNames = el.className.split(' ').filter(c => c.trim());" +
+            "            } else if (el.className && el.className.length) {" +
+            "                classNames = Array.from(el.className).filter(c => c.trim());" +
+            "            }" +
+            "            if (classNames && classNames.length > 0) {" +
+            "                selector = el.tagName.toLowerCase() + '.' + classNames.join('.');" +
+            "            } else {" +
+            "                selector = el.tagName.toLowerCase();" +
+            "            }" +
+            "        } else {" +
+            "            selector = el.tagName.toLowerCase();" +
+            "        }" +
+            "        " +
+            "        selectorCache.set(cacheKey, selector);" +
+            "        return selector;" +
+            "    }" +
+            "" +
+            "    function getBreadcrumbs(el) {" +
+            "        if (breadcrumbCache.has(el)) {" +
+            "            return breadcrumbCache.get(el);" +
+            "        }" +
+            "        " +
+            "        const breadcrumbs = [];" +
+            "        let current = el;" +
+            "        let depth = 0;" +
+            "        const maxDepth = 10;" +
+            "        " +
+            "        while (current && current !== document.body && depth < maxDepth) {" +
+            "            breadcrumbs.unshift(getCssSelector(current));" +
+            "            current = current.parentElement;" +
+            "            depth++;" +
+            "        }" +
+            "        " +
+            "        const result = breadcrumbs.join(' > ');" +
+            "        breadcrumbCache.set(el, result);" +
+            "        return result;" +
+            "    }" +
+            "" +
+            "    // Pre-compute element-rule mapping for better performance" +
+            "    const elementRuleMap = new Map();" +
+            "    const allElements = document.querySelectorAll('*');" +
+            "    " +
+            "    stylesheets.forEach((sheet, sheetIndex) => {" +
+            "        try {" +
+            "            const rules = Array.from(sheet.cssRules || sheet.rules || []);" +
+            "            rules.forEach((rule, ruleIndex) => {" +
+            "                if (rule.style) {" +
+            "                    try {" +
+            "                        const matchingElements = document.querySelectorAll(rule.selectorText);" +
+            "                        matchingElements.forEach(element => {" +
+            "                            if (!elementRuleMap.has(element)) {" +
+            "                                elementRuleMap.set(element, []);" +
+            "                            }" +
+            "                            elementRuleMap.get(element).push({" +
+            "                                rule: rule," +
+            "                                style: rule.style," +
+            "                                selector: rule.selectorText," +
+            "                                sheetIndex: sheetIndex," +
+            "                                ruleIndex: ruleIndex" +
+            "                            });" +
+            "                        });" +
+            "                    } catch (e) {" +
+            "                        // Invalid selector, skip" +
+            "                    }" +
+            "                }" +
+            "            });" +
+            "        } catch (e) {" +
+            "            // Cross-origin stylesheet, skip" +
+            "        }" +
+            "    });" +
+            "" +
+            "    // Process elements with their pre-matched rules" +
+            "    elementRuleMap.forEach((elementRules, element) => {" +
+            "        if (element.tagName === 'SCRIPT' || element.tagName === 'STYLE' || " +
+            "            element.tagName === 'NOSCRIPT' || element.tagName === 'META') {" +
+            "            return;" +
+            "        }" +
+            "        " +
+            "        elementRules.forEach(ruleData => {" +
+            "            const style = ruleData.style;" +
+            "            const propertiesToCheck = {" +
+            "                'color': { name: 'color', category: 'Colors' }," +
+            "                'background-color': { name: 'background-color', category: 'Colors' }," +
+            "                'border-color': { name: 'border-color', category: 'Colors' }," +
+            "                'border-top-color': { name: 'border-top-color', category: 'Colors' }," +
+            "                'border-right-color': { name: 'border-right-color', category: 'Colors' }," +
+            "                'border-bottom-color': { name: 'border-bottom-color', category: 'Colors' }," +
+            "                'border-left-color': { name: 'border-left-color', category: 'Colors' }," +
+            "                'font-size': { name: 'font-size', category: 'Typography' }," +
+            "                'font-weight': { name: 'font-weight', category: 'Typography' }," +
+            "                'line-height': { name: 'line-height', category: 'Typography' }," +
+            "                'margin': { name: 'margin', category: 'Spacing' }," +
+            "                'padding': { name: 'padding', category: 'Spacing' }," +
+            "                'border-radius': { name: 'border-radius', category: 'Radius' }," +
+            "                'border-top-left-radius': { name: 'border-top-left-radius', category: 'Radius' }," +
+            "                'border-top-right-radius': { name: 'border-top-right-radius', category: 'Radius' }," +
+            "                'border-bottom-left-radius': { name: 'border-bottom-left-radius', category: 'Radius' }," +
+            "                'border-bottom-right-radius': { name: 'border-bottom-right-radius', category: 'Radius' }" +
+            "            };" +
+            "" +
+            "            Object.keys(propertiesToCheck).forEach(property => {" +
+            "                const value = style.getPropertyValue(property);" +
+            "                if (value && value.trim() && " +
+            "                    !value.startsWith('var(--') && " +
+            "                    !value.startsWith('inherit') && " +
+            "                    !value.startsWith('initial') &&" +
+            "                    value !== 'transparent' && " +
+            "                    value !== 'currentColor') {" +
+            "" +
+            "                    let originalValue = value;" +
+            "                    if (property.includes('color')) {" +
+            "                        if (value.match(/^rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)$/)) {" +
+            "                            const rgbMatch = value.match(/^rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)$/);" +
+            "                            const r = parseInt(rgbMatch[1]);" +
+            "                            const g = parseInt(rgbMatch[2]);" +
+            "                            const b = parseInt(rgbMatch[3]);" +
+            "                            const toHex = (n) => {" +
+            "                                const hex = n.toString(16);" +
+            "                                return hex.length === 1 ? '0' + hex : hex;" +
+            "                            };" +
+            "                            const hexColor = '#' + toHex(r) + toHex(g) + toHex(b);" +
+            "                            originalValue = hexColor;" +
+            "                        } else if (value.match(/^rgba\\([^)]+\\)$/)) {" +
+            "                            originalValue = value;" +
+            "                        } else {" +
+            "                            originalValue = value;" +
+            "                        }" +
+            "                    }" +
+            "" +
+            "                    const propertyInfo = propertiesToCheck[property];" +
+            "                    let shouldFlag = false;" +
+            "" +
+            "                    if (property.includes('color') && (" +
+            "                        value.match(/^#[0-9a-fA-F]{3,6}$/) ||" +
+            "                        value.match(/^rgb\\([^)]+\\)$/) ||" +
+            "                        value.match(/^rgba\\([^)]+\\)$/) ||" +
+            "                        value.match(/^hsl\\([^)]+\\)$/) ||" +
+            "                        value.match(/^hsla\\([^)]+\\)$/)" +
+            "                    )) {" +
+            "                        if (value !== 'rgba(0, 0, 0, 0)' &&" +
+            "                            value !== 'rgb(0, 0, 0)' &&" +
+            "                            value !== 'rgb(255, 255, 255)' &&" +
+            "                            value !== 'rgba(255, 255, 255, 1)' &&" +
+            "                            value !== '#000000' &&" +
+            "                            value !== '#ffffff' &&" +
+            "                            value !== '#000' &&" +
+            "                            value !== '#fff') {" +
+            "                            shouldFlag = true;" +
+            "                        }" +
+            "                    } else if (property.includes('margin') || property.includes('padding')) {" +
+            "                        if ((value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) && value !== '0px') {" +
+            "                            shouldFlag = true;" +
+            "                        }" +
+            "                    } else if (property.includes('font-size') || property.includes('font-weight') || property.includes('line-height')) {" +
+            "                        let shouldFlagTypography = false;" +
+            "                        if (property.includes('font-size')) {" +
+            "                            if (value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) {" +
+            "                                shouldFlagTypography = true;" +
+            "                            }" +
+            "                        } else if (property.includes('font-weight')) {" +
+            "                            if (value.match(/^\\d+$/)) {" +
+            "                                shouldFlagTypography = true;" +
+            "                            }" +
+            "                        } else if (property.includes('line-height')) {" +
+            "                            if (value.match(/^\\d+\\.\\d+$/) || " +
+            "                                value.match(/^\\d+em$/) || " +
+            "                                value.match(/^\\d+\\.\\d+em$/) || " +
+            "                                value.match(/^\\d+%$/) || " +
+            "                                value.match(/^\\d+\\.\\d+%$/) || " +
+            "                                value.match(/^\\d+px$/) || " +
+            "                                value.match(/^\\d+\\.\\d+px$/)) {" +
+            "                                shouldFlagTypography = true;" +
+            "                            }" +
+            "                        }" +
+            "                        if (shouldFlagTypography) {" +
+            "                            shouldFlag = true;" +
+            "                        }" +
+            "                    } else if (property.includes('border-radius')) {" +
+            "                        if (value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) {" +
+            "                            shouldFlag = true;" +
+            "                        }" +
+            "                    }" +
+            "" +
+            "                    if (shouldFlag) {" +
+            "                        const elementId = 'ds-lint-' + (++elementCounter);" +
+            "                        element.setAttribute('data-ds-lint-id', elementId);" +
+            "                        results[propertyInfo.category].push({" +
+            "                            elementId: elementId," +
+            "                            selector: getCssSelector(element)," +
+            "                            property: propertyInfo.name," +
+            "                            value: originalValue," +
+            "                            path: getBreadcrumbs(element)," +
+            "                            rule: ruleData.selector," +
+            "                            stylesheet: sheet.href || 'inline'" +
+            "                        });" +
+            "                    }" +
+            "                }" +
+            "            });" +
+            "        });" +
+            "    });" +
+            "" +
+            "    return results;" +
+            "})()",
+            function(result, isException) {
+                scannerState.style.display = 'none';
+                
+                if (isException) {
+                    console.error('DS-Lint: Error scanning page:', isException);
+                    return;
                 }
 
-                function getBreadcrumbs(el) {
-                    const breadcrumbs = [];
-                    let current = el;
-                    while (current && current !== document.body) {
-                        breadcrumbs.unshift(getCssSelector(current));
-                        current = current.parentElement;
-                    }
-                    return breadcrumbs.join(' > ');
-                }
-
-                // Check each stylesheet
-                stylesheets.forEach((sheet, sheetIndex) => {
-                    try {
-                        const rules = Array.from(sheet.cssRules || sheet.rules || []);
-                        
-                        rules.forEach((rule, ruleIndex) => {
-                            if (rule.style) {
-                                const style = rule.style;
-                                const propertiesToCheck = {
-                                    'color': { name: 'Text Color', category: 'Colors' },
-                                    'background-color': { name: 'Background Color', category: 'Colors' },
-                                    'border-color': { name: 'Border Color', category: 'Colors' },
-                                    'border-top-color': { name: 'Border Top Color', category: 'Colors' },
-                                    'border-right-color': { name: 'Border Right Color', category: 'Colors' },
-                                    'border-bottom-color': { name: 'Border Bottom Color', category: 'Colors' },
-                                    'border-left-color': { name: 'Border Left Color', category: 'Colors' },
-                                    'font-size': { name: 'Font Size', category: 'Typography' },
-                                    'font-weight': { name: 'Font Weight', category: 'Typography' },
-                                    'line-height': { name: 'Line Height', category: 'Typography' },
-                                    'margin': { name: 'Margin', category: 'Spacing' },
-                                    'padding': { name: 'Padding', category: 'Spacing' },
-                                    'border-radius': { name: 'Border Radius', category: 'Radius' },
-                                    'border-top-left-radius': { name: 'Border Top Left Radius', category: 'Radius' },
-                                    'border-top-right-radius': { name: 'Border Top Right Radius', category: 'Radius' },
-                                    'border-bottom-left-radius': { name: 'Border Bottom Left Radius', category: 'Radius' },
-                                    'border-bottom-right-radius': { name: 'Border Bottom Right Radius', category: 'Radius' }
-                                };
-                                
-                                Object.keys(propertiesToCheck).forEach(property => {
-                                    const value = style.getPropertyValue(property);
-                                    if (value && value.trim() && 
-                                        !value.startsWith('var(--') && 
-                                        !value.startsWith('inherit') && 
-                                        !value.startsWith('initial') &&
-                                        value !== 'transparent' && 
-                                        value !== 'currentColor') {
-                                        
-                                        // Try to get the original value format for colors
-                                        let originalValue = value;
-                                        if (property.includes('color')) {
-                                            try {
-                                                // Check if we can get the original declaration
-                                                const cssText = style.cssText;
-                                                // Use a simpler approach to find the property value
-                                                const propertyIndex = cssText.toLowerCase().indexOf(property.toLowerCase());
-                                                if (propertyIndex !== -1) {
-                                                    const afterProperty = cssText.substring(propertyIndex + property.length);
-                                                    const colonIndex = afterProperty.indexOf(':');
-                                                    if (colonIndex !== -1) {
-                                                        const afterColon = afterProperty.substring(colonIndex + 1);
-                                                        const semicolonIndex = afterColon.indexOf(';');
-                                                        const extractedValue = semicolonIndex !== -1 
-                                                            ? afterColon.substring(0, semicolonIndex).trim()
-                                                            : afterColon.trim();
-                                                        // If the extracted value is in hex format, use it
-                                                        if (extractedValue.match(/^#[0-9a-fA-F]{3,6}$/)) {
-                                                            originalValue = extractedValue;
-                                                        }
-                                                    }
-                                                }
-                                            } catch (e) {
-                                                // Fall back to the computed value
-                                            }
-                                        }
-                                        
-                                        const propertyInfo = propertiesToCheck[property];
-                                        let shouldFlag = false;
-                                        
-                                        // Check for hardcoded colors
-                                        if (property.includes('color') && (
-                                            value.match(/^#[0-9a-fA-F]{3,6}$/) ||
-                                            value.match(/^rgb\\([^)]+\\)$/) ||
-                                            value.match(/^rgba\\([^)]+\\)$/) ||
-                                            value.match(/^hsl\\([^)]+\\)$/) ||
-                                            value.match(/^hsla\\([^)]+\\)$/)
-                                        )) {
-                                            // Skip common default colors and transparent values
-                                            if (value !== 'rgba(0, 0, 0, 0)' &&
-                                                value !== 'rgb(0, 0, 0)' &&
-                                                value !== 'rgb(255, 255, 255)' &&
-                                                value !== 'rgba(255, 255, 255, 1)' &&
-                                                value !== '#000000' &&
-                                                value !== '#ffffff' &&
-                                                value !== '#000' &&
-                                                value !== '#fff') {
-                                                shouldFlag = true;
-                                            }
-                                        }
-                                        // Check for hardcoded spacing values
-                                        else if (property.includes('margin') || property.includes('padding')) {
-                                            if (value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) {
-                                                shouldFlag = true;
-                                            }
-                                        }
-                                        // Check for hardcoded typography values
-                                        else if (property.includes('font-size') || property.includes('font-weight') || property.includes('line-height')) {
-                                            if (value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/) || value.match(/^\\d+$/)) {
-                                                shouldFlag = true;
-                                            }
-                                        }
-                                        // Check for hardcoded border radius values
-                                        else if (property.includes('border-radius')) {
-                                            if (value.match(/^\\d+px$/) || value.match(/^\\d+\\.\\d+px$/)) {
-                                                shouldFlag = true;
-                                            }
-                                        }
-                                        
-                                        if (shouldFlag) {
-                                            // Find elements that match this rule
-                                            try {
-                                                const elements = document.querySelectorAll(rule.selectorText);
-                                                elements.forEach(element => {
-                                                    const elementId = 'ds-lint-' + (++elementCounter);
-                                                    element.setAttribute('data-ds-lint-id', elementId);
-                                                    
-                                                    results[propertyInfo.category].push({
-                                                        elementId: elementId,
-                                                        selector: getCssSelector(element),
-                                                        property: propertyInfo.name,
-                                                        value: originalValue,
-                                                        path: getBreadcrumbs(element),
-                                                        rule: rule.selectorText,
-                                                        stylesheet: sheet.href || 'inline'
-                                                    });
-                                                    
-                                                    // Debug: Log the element that was marked
-                                                    console.log('DS-Lint DevTools: Marked element', elementId, 'with value', value, 'for property', property);
-                                                });
-                                            } catch (e) {
-                                                // Invalid selector, skip
-                                                console.log('DS-Lint DevTools: Invalid selector:', rule.selectorText, e);
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        });
-                    } catch (e) {
-                        // Cross-origin stylesheet, skip
-                    }
-                });
-
-                return results;
-            })()
-        `, function(result, isException) {
-            scannerState.style.display = 'none';
-            
-            if (isException) {
-                console.error('DS-Lint: Error scanning page:', isException);
-                return;
+                displayResults(result || []);
             }
-
-            displayResults(result || []);
-        });
+        );
     }
 
     function scanWithContentScript(tabId) {
@@ -271,14 +315,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Show category tabs and display results
-        categoryTabs.style.display = 'flex';
+        categoryTabs.style.display = 'block';
         resultsContainer.style.display = 'block';
+        
+        // Update tab counts
+        updateTabCounts();
         
         // Setup tab functionality
         setupCategoryTabs();
         
         // Display current category
         displayCurrentCategory();
+    }
+
+    function updateTabCounts() {
+        const totalIssues = Object.values(allResults).reduce((sum, items) => sum + items.length, 0);
+        
+        // Update all count
+        const allCount = document.getElementById('all-count');
+        if (allCount) allCount.textContent = totalIssues;
+        
+        // Update individual category counts
+        const categories = ['Colors', 'Spacing', 'Typography', 'Radius'];
+        categories.forEach(category => {
+            const countElement = document.getElementById(category.toLowerCase() + '-count');
+            if (countElement) {
+                const count = allResults[category] ? allResults[category].length : 0;
+                countElement.textContent = count;
+            }
+        });
     }
 
     function setupCategoryTabs() {
@@ -317,85 +382,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsContainer.appendChild(section);
             }
         }
-        
-        // Open the first category by default
-        const firstHeader = resultsContainer.querySelector('.category-header');
-        if (firstHeader) firstHeader.click();
     }
 
     function formatCssValue(value) {
-        // If it's already in hex format, return as is
-        if (value.match(/^#[0-9a-fA-F]{3,6}$/)) {
-            return value;
-        }
-        
-        // If it's rgba, try to convert to hex if possible
-        if (value.match(/^rgba?\([^)]+\)$/)) {
-            try {
-                // Create a temporary element to convert rgba to hex
-                const tempDiv = document.createElement('div');
-                tempDiv.style.color = value;
-                document.body.appendChild(tempDiv);
-                
-                // Get the computed style which might be in hex
-                const computedColor = window.getComputedStyle(tempDiv).color;
-                document.body.removeChild(tempDiv);
-                
-                // If the computed color is different from the original, use it
-                if (computedColor !== value) {
-                    return computedColor;
-                }
-                
-                // If it's still rgba, try to convert manually for common cases
-                const rgbaMatch = value.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
-                if (rgbaMatch) {
-                    const r = parseInt(rgbaMatch[1]);
-                    const g = parseInt(rgbaMatch[2]);
-                    const b = parseInt(rgbaMatch[3]);
-                    const a = rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1;
-                    
-                    // Convert to hex
-                    const toHex = (n) => {
-                        const hex = n.toString(16);
-                        return hex.length === 1 ? '0' + hex : hex;
-                    };
-                    
-                    const hexColor = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-                    
-                    // If alpha is 1, return hex, otherwise return rgba
-                    if (a === 1) {
-                        return hexColor;
-                    } else {
-                        return value; // Keep rgba for transparency
-                    }
-                }
-            } catch (e) {
-                console.log('DS-Lint: Error converting color format:', e);
-            }
-            
-            return value;
-        }
-        
-        // Handle other color formats
-        if (value.match(/^hsl\([^)]+\)$/) || value.match(/^hsla\([^)]+\)$/)) {
-            try {
-                // Create a temporary element to convert hsl to hex
-                const tempDiv = document.createElement('div');
-                tempDiv.style.color = value;
-                document.body.appendChild(tempDiv);
-                
-                const computedColor = window.getComputedStyle(tempDiv).color;
-                document.body.removeChild(tempDiv);
-                
-                if (computedColor !== value) {
-                    return computedColor;
-                }
-            } catch (e) {
-                console.log('DS-Lint: Error converting HSL color format:', e);
-            }
-        }
-        
-        // For other values, return as is
+        // Return the original value as-is to preserve the CSS format
+        // This ensures hex values stay hex, rgb values stay rgb, etc.
         return value;
     }
 
@@ -407,17 +398,12 @@ document.addEventListener('DOMContentLoaded', function() {
         header.className = 'category-header';
         header.innerHTML = `<span class="category-title">${category}</span><span class="category-count">${items.length}</span>`;
 
-        const list = document.createElement('ul');
+        const list = document.createElement('div');
         list.className = 'results-list';
 
         items.forEach(itemData => {
             const card = createIssueCard(itemData);
             list.appendChild(card);
-        });
-
-        header.addEventListener('click', () => {
-            const isHidden = list.style.display === 'none' || list.style.display === '';
-            list.style.display = isHidden ? 'block' : 'none';
         });
 
         section.appendChild(header);
@@ -426,23 +412,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function createIssueCard(itemData) {
-        const li = document.createElement('li');
-        li.className = 'result-item-card';
-        li.dataset.elementId = itemData.elementId;
+        const card = document.createElement('div');
+        card.className = 'issue-card';
+        card.dataset.elementId = itemData.elementId;
 
         // Format the value to show the original format (hex vs rgba)
         const formattedValue = formatCssValue(itemData.value);
 
-        li.innerHTML = `
-            <div class="item-selector" title="${itemData.selector}">${itemData.selector}</div>
-            <div class="item-details">
-                <span class="item-property">${itemData.property}:</span>
-                <span class="item-value">${formattedValue}</span>
+        card.innerHTML = `
+            <div class="issue-selector" title="${itemData.selector}">${itemData.selector}</div>
+            <div class="issue-details">
+                <span class="issue-property">${itemData.property}:</span>
+                <span class="issue-value">${formattedValue}</span>
             </div>
-            <div class="item-path" title="${itemData.path}">${itemData.path}</div>
+            <div class="issue-path" title="${itemData.path}">${itemData.path}</div>
         `;
 
-        li.addEventListener('click', () => {
+        card.addEventListener('click', () => {
             console.log('DS-Lint: Clicked on item with data:', itemData);
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (chrome.devtools && chrome.devtools.inspectedWindow) {
@@ -529,14 +515,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         setTimeout(() => {
                             chrome.tabs.sendMessage(tabs[0].id, { 
                                 action: 'inspectElement', 
-                                elementId: li.dataset.elementId 
+                                elementId: card.dataset.elementId 
                             });
                         }, 50);
                     });
                 }
             });
         });
-        return li;
+        return card;
     }
 
     startScan();
