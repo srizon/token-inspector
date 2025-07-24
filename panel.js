@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
             scannerState.style.display = 'none';
             
             if (isException) {
-                console.error('DS-Lint: Error scanning page:', isException);
+                console.error('Token Inspector: Error scanning page:', isException);
                 return;
             }
 

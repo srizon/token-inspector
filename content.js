@@ -25,7 +25,7 @@
             try {
                 targetElement = document.querySelector(elementInfo.selector);
             } catch (e) {
-                console.log('DS-Lint: Invalid selector from map:', elementInfo.selector);
+                console.log('Token Inspector: Invalid selector from map:', elementInfo.selector);
             }
         }
         
@@ -38,16 +38,16 @@
                         targetElement = document.querySelector(item.selector);
                         if (targetElement) break;
                     } catch (e) {
-                        console.log('DS-Lint: Invalid selector:', item.selector);
+                        console.log('Token Inspector: Invalid selector:', item.selector);
                     }
                 }
             }
         }
         
-        console.log('DS-Lint: Looking for element with ID:', elementId, 'Found:', !!targetElement);
+                    console.log('Token Inspector: Looking for element with ID:', elementId, 'Found:', !!targetElement);
         
         if (targetElement) {
-            console.log('DS-Lint: Highlighting element:', targetElement);
+            console.log('Token Inspector: Highlighting element:', targetElement);
             
             // Scroll to the element with smooth behavior
             targetElement.scrollIntoView({ 
@@ -65,14 +65,14 @@
             targetElement.classList.add('ds-lint-highlight');
             window.dsLint.highlightedElement = targetElement;
         } else {
-            console.log('DS-Lint: Could not find element with ID:', elementId);
+            console.log('Token Inspector: Could not find element with ID:', elementId);
         }
     };
 
     // Attach the inspector listener only once per page load.
     if (!window.dsLint.listenerAttached) {
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            console.log('DS-Lint: Received message:', request);
+            console.log('Token Inspector: Received message:', request);
             if (request.action === 'inspectElement') {
                 window.dsLint.inspectAndHighlight(request.elementId);
                 sendResponse({ success: true });

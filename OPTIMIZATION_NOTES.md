@@ -1,7 +1,7 @@
-# DS-Lint Performance Optimizations
+# Token Inspector Performance Optimizations
 
 ## Overview
-The DS-Lint extension has been optimized to significantly improve scanning performance while maintaining all existing features and functionalities.
+The Token Inspector extension has been optimized to significantly improve scanning performance while maintaining all existing features and functionalities.
 
 ## Performance Issues Identified
 
@@ -83,7 +83,7 @@ The DS-Lint extension has been optimized to significantly improve scanning perfo
 
 ### How to Test:
 1. Load `performance-test.html` in browser
-2. Run DS-Lint scan
+2. Run Token Inspector scan
 3. Compare scan completion time with previous version
 4. Check console for performance metrics
 

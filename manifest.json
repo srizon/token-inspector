@@ -1,9 +1,9 @@
 
 {
   "manifest_version": 3,
-  "name": "DS-Lint",
+  "name": "Token Inspector",
   "version": "1.0",
-  "description": "A linter to detect hard-coded CSS values on webpages.",
+  "description": "A Chrome extension to inspect and analyze design tokens and hard-coded CSS values on webpages.",
   "permissions": [
     "activeTab",
     "scripting"

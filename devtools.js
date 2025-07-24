@@ -1,5 +1,5 @@
 chrome.devtools.panels.create(
-    "DS-Lint",
+    "Token Inspector",
     null,
     "panel.html",
     function(panel) {

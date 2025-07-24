@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 scannerState.style.display = 'none';
                 
                 if (isException) {
-                    console.error('DS-Lint: Error scanning page:', isException);
+                    console.error('Token Inspector: Error scanning page:', isException);
                     return;
                 }
 
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         card.addEventListener('click', () => {
-            console.log('DS-Lint: Clicked on item with data:', itemData);
+            console.log('Token Inspector: Clicked on item with data:', itemData);
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (chrome.devtools && chrome.devtools.inspectedWindow) {
                     // Use DevTools API for highlighting
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 try {
                                     element = document.querySelector(itemData.selector);
                                 } catch (e) {
-                                    console.log('DS-Lint: Invalid selector:', itemData.selector);
+                                    console.log('Token Inspector: Invalid selector:', itemData.selector);
                                 }
                             }
                             
@@ -454,13 +454,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                     try {
                                         element = document.querySelector(pathParts[pathParts.length - 1]);
                                     } catch (e) {
-                                        console.log('DS-Lint: Invalid path selector:', pathParts[pathParts.length - 1]);
+                                        console.log('Token Inspector: Invalid path selector:', pathParts[pathParts.length - 1]);
                                     }
                                 }
                             }
                             
                             if (element) {
-                                console.log('DS-Lint: Found element for highlighting:', element);
+                                console.log('Token Inspector: Found element for highlighting:', element);
                                 
                                 // Clear previous highlight
                                 const prevHighlight = document.querySelector('.ds-lint-highlight');
@@ -505,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     }
                                 }, 3000);
                             } else {
-                                console.log('DS-Lint: Could not find element for highlighting. ElementId:', '${itemData.elementId}', 'Selector:', '${itemData.selector}');
+                                console.log('Token Inspector: Could not find element for highlighting. ElementId:', '${itemData.elementId}', 'Selector:', '${itemData.selector}');
                             }
                         })()
                     `);
