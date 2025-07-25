@@ -187,8 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     category = 'Typography';
                 } else if (item.category === 'Spacing' || item.property.includes('Margin') || item.property.includes('Padding')) {
                     category = 'Spacing';
-                } else if (item.category === 'Radius' || item.property.includes('Radius')) {
-                    category = 'Radius';
+                } else if (item.category === 'Border' || item.property.includes('Border')) {
+    category = 'Border';
                 }
                 
                 if (!converted[category]) {
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (allCount) allCount.textContent = totalIssues;
         
         // Update individual category counts
-        const categories = ['Colors', 'Typography', 'Spacing', 'Radius'];
+        const categories = ['Colors', 'Typography', 'Spacing', 'Border'];
         categories.forEach(category => {
             const countElement = document.getElementById(category.toLowerCase() + '-count');
             if (countElement) {

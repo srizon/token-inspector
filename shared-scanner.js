@@ -111,8 +111,8 @@ class TokenInspectorScanner {
                     category = 'Typography';
                 } else if (item.category === 'Spacing' || item.property.includes('Margin') || item.property.includes('Padding')) {
                     category = 'Spacing';
-                } else if (item.category === 'Radius' || item.property.includes('Radius')) {
-                    category = 'Radius';
+                } else if (item.category === 'Border' || item.property.includes('Border')) {
+    category = 'Border';
                 }
                 
                 if (!converted[category]) {

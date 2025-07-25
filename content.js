@@ -374,11 +374,11 @@
             'line-height': { name: 'line-height', category: 'Typography' },
             'margin': { name: 'margin', category: 'Spacing' },
             'padding': { name: 'padding', category: 'Spacing' },
-            'border-radius': { name: 'border-radius', category: 'Radius' },
-            'border-top-left-radius': { name: 'border-top-left-radius', category: 'Radius' },
-            'border-top-right-radius': { name: 'border-top-right-radius', category: 'Radius' },
-            'border-bottom-left-radius': { name: 'border-bottom-left-radius', category: 'Radius' },
-            'border-bottom-right-radius': { name: 'border-bottom-right-radius', category: 'Radius' },
+            'border-radius': { name: 'border-radius', category: 'Border' },
+'border-top-left-radius': { name: 'border-top-left-radius', category: 'Border' },
+'border-top-right-radius': { name: 'border-top-right-radius', category: 'Border' },
+'border-bottom-left-radius': { name: 'border-bottom-left-radius', category: 'Border' },
+'border-bottom-right-radius': { name: 'border-bottom-right-radius', category: 'Border' },
             'width': { name: 'width', category: 'Layout' },
             'height': { name: 'height', category: 'Layout' }
         };
@@ -553,7 +553,7 @@
                     } else if (property.includes('border-radius')) {
                         if (value.match(/^\d+(\.\d+)?px$/)) {
                             shouldFlag = true;
-                            category = 'Radius';
+                            category = 'Border';
                         }
                     }
                 }

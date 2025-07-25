@@ -5,12 +5,14 @@ A powerful Chrome extension that helps developers and designers inspect and anal
 ## Features
 
 - **Real-time Token Analysis**: Scans webpages for hard-coded CSS values that should be using design tokens
-- **Categorized Results**: Organizes findings by design system categories (Colors, Typography, Spacing, Radius)
+- **Categorized Results**: Organizes findings by design system categories (Colors, Typography, Spacing, Border)
 - **Interactive UI**: Clean, modern interface with tabbed navigation and detailed violation information
 - **Developer Tools Integration**: Dedicated panel in Chrome DevTools for advanced analysis
 - **Performance Optimized**: Efficient scanning algorithms with minimal impact on page performance
 - **Shared Scanning Module**: Reusable scanning logic for consistent analysis across popup and DevTools
 - **Enhanced Testing**: Comprehensive test files for various scenarios
+- **Modern Design System**: Shadcn-inspired UI with consistent typography, spacing, and color system
+- **Category Icons**: Visual icons for each design system category for better identification
 
 ## Installation
 
@@ -35,7 +37,7 @@ A powerful Chrome extension that helps developers and designers inspect and anal
 1. Navigate to any webpage you want to analyze
 2. Click the Token Inspector icon in your Chrome toolbar
 3. The extension will automatically scan the page for design token violations
-4. Review the results organized by category (Colors, Typography, Spacing, Radius)
+4. Review the results organized by category (Colors, Typography, Spacing, Border)
 
 ### Developer Tools Panel
 1. Open Chrome DevTools (F12 or right-click → Inspect)
@@ -51,14 +53,14 @@ A powerful Chrome extension that helps developers and designers inspect and anal
 - **Colors**: Hard-coded color values (hex, rgb, rgba)
 - **Typography**: Font sizes, font weights, line heights
 - **Spacing**: Margins, paddings, gaps
-- **Radius**: Border radius values
+- **Border**: Border radius values
 
 ## Test Files
 
 The repository includes test files to demonstrate the extension's capabilities:
 
 - `simple-test.html`: Basic test cases for common violations
-- `complext-test.html`: Complex scenarios with nested elements
+- `complex-test.html`: Complex scenarios with nested elements
 
 ## Development
 
@@ -75,8 +77,14 @@ token-inspector/
 ├── panel.js               # DevTools panel functionality
 ├── devtools.html          # DevTools integration
 ├── devtools.js            # DevTools setup
+├── assets/                # Icon assets for categories
+│   ├── icon-color.svg     # Color category icon
+│   ├── icon-text.svg      # Typography category icon
+│   ├── icon-spacing.svg   # Spacing category icon
+│   └── icon-border.svg    # Border category icon
 ├── simple-test.html       # Basic test scenarios
 ├── complex-test.html      # Complex test scenarios
+├── flagged-variables.json # Custom flagged variables
 └── README.md              # Project documentation
 ```
 
@@ -87,6 +95,7 @@ token-inspector/
 - **Popup Interface** (`popup.html/js`): Main user interface for viewing results
 - **DevTools Panel** (`panel.html/js`): Advanced analysis tools for developers
 - **Performance Optimizations**: Efficient scanning algorithms and caching mechanisms
+- **Icon System** (`assets/`): Category-specific icons for better visual identification
 
 ## Performance Optimizations
 
@@ -107,8 +116,17 @@ The extension has been significantly optimized for performance with the followin
 
 ## Recent Updates
 
+### Version 1.5 Updates:
+- **Complete UI Redesign**: Modernized popup interface with shadcn-inspired design
+- **New Icon System**: Added category-specific SVG icons for Colors, Typography, Spacing, and Border
+- **Enhanced Visual Hierarchy**: Improved layout with better typography, spacing, and color system
+- **Better Accessibility**: Added proper HTML semantics, ARIA labels, and improved keyboard navigation
+- **Responsive Design**: Enhanced mobile responsiveness and better cross-browser compatibility
+- **Code Organization**: Restructured CSS with better naming conventions and modular architecture
+- **Performance Improvements**: Optimized scanning algorithms and UI rendering
+- **Asset Management**: Added dedicated assets directory for icons and visual elements
+
 ### Version 1.4 Updates:
-- **Complete UI Redesign**: Modernized popup interface with new design system inspired by shadcn/ui
 - **Enhanced Visual Hierarchy**: Improved layout with better typography, spacing, and color system
 - **New Icon System**: Added category-specific icons for better visual identification
 - **Improved Summary View**: Replaced tabs with a more intuitive summary card layout
@@ -179,6 +197,8 @@ If you encounter any issues or have questions, please:
 - [ ] Team collaboration features
 - [ ] Web Workers for background processing
 - [ ] Incremental scanning for dynamic content
+- [ ] Dark mode support
+- [ ] Custom theme configuration
 
 ---
 
