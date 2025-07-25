@@ -11,7 +11,7 @@ A powerful Chrome extension that helps developers and designers inspect and anal
 - **Performance Optimized**: Efficient scanning algorithms with minimal impact on page performance
 - **Shared Scanning Module**: Reusable scanning logic for consistent analysis across popup and DevTools
 - **Enhanced Testing**: Comprehensive test files for various scenarios
-- **Modern Design System**: Shadcn-inspired UI with consistent typography, spacing, and color system
+- **Modern Design System**: Clean, minimal UI with consistent typography, spacing, and color system
 - **Category Icons**: Visual icons for each design system category for better identification
 
 ## Installation
@@ -117,7 +117,7 @@ The extension has been significantly optimized for performance with the followin
 ## Recent Updates
 
 ### Version 1.5 Updates:
-- **Complete UI Redesign**: Modernized popup interface with shadcn-inspired design
+- **Complete UI Redesign**: Modernized popup interface with clean, minimal design
 - **New Icon System**: Added category-specific SVG icons for Colors, Typography, Spacing, and Border
 - **Enhanced Visual Hierarchy**: Improved layout with better typography, spacing, and color system
 - **Better Accessibility**: Added proper HTML semantics, ARIA labels, and improved keyboard navigation
