@@ -77,9 +77,6 @@ token-inspector/
 ├── devtools.js            # DevTools setup
 ├── simple-test.html       # Basic test scenarios
 ├── complex-test.html      # Complex test scenarios
-├── popup-new/             # New popup design (experimental)
-│   ├── popup-new.html     # Alternative popup interface
-│   └── styles.css         # New popup styling
 └── README.md              # Project documentation
 ```
 
