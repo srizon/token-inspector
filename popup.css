@@ -201,7 +201,7 @@ h1 {
     margin: 6px 12px;
     padding: 10px;
     background: #ffffff;
-    border: 1px solid #e5e5e5;
+    /* border: 1px solid #e5e5e5; */
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.1s ease;

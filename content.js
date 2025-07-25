@@ -12,7 +12,7 @@
             try {
                 window.dsLint.highlightedElement.style.outline = '';
                 window.dsLint.highlightedElement.style.boxShadow = '';
-                window.dsLint.highlightedElement.style.backgroundColor = '';
+                window.dsLint.highlightedElement.style.animation = '';
                 window.dsLint.highlightedElement.classList.remove('ds-lint-highlight');
             } catch (e) { /* Element might have been removed */ }
         }
@@ -69,10 +69,33 @@
                 inline: 'center'
             });
             
-            // Add a persistent highlight effect
-            targetElement.style.outline = '4px solid #FF3B30';
-            targetElement.style.boxShadow = '0 0 25px rgba(255, 59, 48, 0.8)';
-            targetElement.style.backgroundColor = 'rgba(255, 59, 48, 0.15)';
+            // Add a persistent highlight effect with pulse animation
+            targetElement.style.outline = '2px solid #FF3B30';
+            targetElement.style.boxShadow = '0 0 15px rgba(255, 59, 48, 0.6)';
+            targetElement.style.animation = 'ds-lint-pulse 2s ease-in-out infinite';
+            
+            // Add pulse animation keyframes if not already present
+            if (!document.querySelector('#ds-lint-pulse-styles')) {
+                const style = document.createElement('style');
+                style.id = 'ds-lint-pulse-styles';
+                style.textContent = `
+                    @keyframes ds-lint-pulse {
+                        0% {
+                            outline-width: 2px;
+                            box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
+                        }
+                        50% {
+                            outline-width: 4px;
+                            box-shadow: 0 0 25px rgba(255, 59, 48, 0.8);
+                        }
+                        100% {
+                            outline-width: 2px;
+                            box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
             targetElement.style.zIndex = '9999';
             targetElement.style.position = 'relative';
             targetElement.classList.add('ds-lint-highlight');
@@ -243,7 +266,7 @@
             try {
                 window.dsLint.highlightedElement.style.outline = '';
                 window.dsLint.highlightedElement.style.boxShadow = '';
-                window.dsLint.highlightedElement.style.backgroundColor = '';
+                window.dsLint.highlightedElement.style.animation = '';
                 window.dsLint.highlightedElement.style.zIndex = '';
                 window.dsLint.highlightedElement.style.position = '';
                 window.dsLint.highlightedElement.classList.remove('ds-lint-highlight');
@@ -286,7 +309,7 @@
             try {
                 window.dsLint.highlightedElement.style.outline = '';
                 window.dsLint.highlightedElement.style.boxShadow = '';
-                window.dsLint.highlightedElement.style.backgroundColor = '';
+                window.dsLint.highlightedElement.style.animation = '';
                 window.dsLint.highlightedElement.style.zIndex = '';
                 window.dsLint.highlightedElement.style.position = '';
                 window.dsLint.highlightedElement.classList.remove('ds-lint-highlight');

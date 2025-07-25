@@ -234,9 +234,32 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 
                                 // Add highlight
-                                element.style.outline = '4px solid #FF3B30';
-                                element.style.boxShadow = '0 0 25px rgba(255, 59, 48, 0.8)';
-                                element.style.backgroundColor = 'rgba(255, 59, 48, 0.15)';
+                                            element.style.outline = '2px solid #FF3B30';
+            element.style.boxShadow = '0 0 15px rgba(255, 59, 48, 0.6)';
+            element.style.animation = 'ds-lint-pulse 2s ease-in-out infinite';
+            
+            // Add pulse animation keyframes if not already present
+            if (!document.querySelector('#ds-lint-pulse-styles')) {
+                const style = document.createElement('style');
+                style.id = 'ds-lint-pulse-styles';
+                style.textContent = \`
+                    @keyframes ds-lint-pulse {
+                        0% {
+                            outline-width: 2px;
+                            box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
+                        }
+                        50% {
+                            outline-width: 4px;
+                            box-shadow: 0 0 25px rgba(255, 59, 48, 0.8);
+                        }
+                        100% {
+                            outline-width: 2px;
+                            box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
+                        }
+                    }
+                \`;
+                document.head.appendChild(style);
+            }
                                 element.style.zIndex = '9999';
                                 element.style.position = 'relative';
                                 element.classList.add('ds-lint-highlight');
@@ -251,9 +274,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Remove highlight after 3 seconds
                                 setTimeout(() => {
                                     if (element.classList.contains('ds-lint-highlight')) {
-                                        element.style.outline = '';
-                                        element.style.boxShadow = '';
-                                        element.style.backgroundColor = '';
+                                                                element.style.outline = '';
+                        element.style.boxShadow = '';
+                        element.style.animation = '';
                                         element.style.zIndex = '';
                                         element.style.position = '';
                                         element.classList.remove('ds-lint-highlight');

@@ -217,9 +217,32 @@ class TokenInspectorScanner {
                     // Highlight the element
                     const element = document.querySelector('[data-ds-lint-id="${itemData.elementId}"]');
                     if (element) {
-                        element.style.outline = '3px solid #007AFF';
-                        element.style.boxShadow = '0 0 20px rgba(0, 122, 255, 0.7)';
-                        element.style.backgroundColor = 'rgba(0, 122, 255, 0.1)';
+                        element.style.outline = '2px solid #007AFF';
+                        element.style.boxShadow = '0 0 15px rgba(0, 122, 255, 0.6)';
+                        element.style.animation = 'ds-lint-pulse-blue 2s ease-in-out infinite';
+                        
+                        // Add pulse animation keyframes if not already present
+                        if (!document.querySelector('#ds-lint-pulse-blue-styles')) {
+                            const style = document.createElement('style');
+                            style.id = 'ds-lint-pulse-blue-styles';
+                            style.textContent = \`
+                                @keyframes ds-lint-pulse-blue {
+                                    0% {
+                                        outline-width: 2px;
+                                        box-shadow: 0 0 15px rgba(0, 122, 255, 0.6);
+                                    }
+                                    50% {
+                                        outline-width: 4px;
+                                        box-shadow: 0 0 25px rgba(0, 122, 255, 0.8);
+                                    }
+                                    100% {
+                                        outline-width: 2px;
+                                        box-shadow: 0 0 15px rgba(0, 122, 255, 0.6);
+                                    }
+                                }
+                            \`;
+                            document.head.appendChild(style);
+                        }
                         element.classList.add('ds-lint-highlight');
                         
                         // Show tooltip
@@ -328,7 +351,7 @@ class TokenInspectorScanner {
                             if (element.classList.contains('ds-lint-highlight')) {
                                 element.style.outline = '';
                                 element.style.boxShadow = '';
-                                element.style.backgroundColor = '';
+                                element.style.animation = '';
                                 element.classList.remove('ds-lint-highlight');
                                 
                                 // Remove tooltip

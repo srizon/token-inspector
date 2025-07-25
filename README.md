@@ -107,6 +107,14 @@ The extension has been significantly optimized for performance with the followin
 
 ## Recent Updates
 
+### Version 1.3 Updates:
+- **Enhanced Element Highlighting**: Improved visual feedback with smooth pulse animations and better contrast
+- **Code Cleanup**: Removed unnecessary test files to streamline the codebase
+- **Better Animation System**: Replaced static highlighting with animated pulse effects for better visibility
+- **Improved User Experience**: Enhanced visual feedback when inspecting elements on the page
+- **Optimized Styling**: Better outline and shadow effects for element highlighting
+- **Cleaner Project Structure**: Removed redundant test files while maintaining core functionality
+
 ### Version 1.2 Updates:
 - **Flagged Variables Support**: Added ability to flag specific CSS custom properties for analysis
 - **Enhanced Tooltips**: Improved element highlighting with detailed tooltips showing property and value information
