@@ -76,7 +76,10 @@ token-inspector/
 ├── devtools.html          # DevTools integration
 ├── devtools.js            # DevTools setup
 ├── simple-test.html       # Basic test scenarios
-├── complext-test.html     # Complex test scenarios
+├── complex-test.html      # Complex test scenarios
+├── popup-new/             # New popup design (experimental)
+│   ├── popup-new.html     # Alternative popup interface
+│   └── styles.css         # New popup styling
 └── README.md              # Project documentation
 ```
 
@@ -106,6 +109,16 @@ The extension has been significantly optimized for performance with the followin
 - **Memory Management**: Proper cache cleanup and management
 
 ## Recent Updates
+
+### Version 1.4 Updates:
+- **Complete UI Redesign**: Modernized popup interface with new design system inspired by shadcn/ui
+- **Enhanced Visual Hierarchy**: Improved layout with better typography, spacing, and color system
+- **New Icon System**: Added category-specific icons for better visual identification
+- **Improved Summary View**: Replaced tabs with a more intuitive summary card layout
+- **Better Accessibility**: Added proper HTML semantics, ARIA labels, and improved keyboard navigation
+- **Responsive Design**: Enhanced mobile responsiveness and better cross-browser compatibility
+- **Code Organization**: Restructured CSS with better naming conventions and modular architecture
+- **Test File Updates**: Renamed and improved test files for better organization
 
 ### Version 1.3 Updates:
 - **Enhanced Element Highlighting**: Improved visual feedback with smooth pulse animations and better contrast
