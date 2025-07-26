@@ -2,9 +2,11 @@
 <html>
 <head>
     <title>Token Inspector Panel</title>
-    <link rel="stylesheet" type="text/css" href="popup.css">
+    <!-- Reuse popup CSS for consistent styling -->
+    <link rel="stylesheet" type="text/css" href="../popup/popup.css">
     <style>
-        /* Simplified Code Editor Design */
+        /* DevTools Panel Specific Styles */
+        /* Simplified Code Editor Design - mimics VS Code's DevTools appearance */
         body {
             width: auto !important;
             height: 100vh !important;
@@ -18,6 +20,7 @@
             padding: 0;
         }
         
+        /* Main application container */
         .app-container {
             height: 100vh !important;
             border: none !important;
@@ -27,6 +30,7 @@
             flex-direction: column;
         }
         
+        /* Results container with scrollable content */
         .results-container {
             height: calc(100vh - 120px) !important;
             background: #252526;
@@ -34,7 +38,7 @@
             overflow-y: auto;
         }
         
-        /* Simplified header */
+        /* Simplified header for DevTools context */
         .header {
             padding: 8px 16px;
             background: #2d2d30;
@@ -46,12 +50,21 @@
             box-sizing: border-box;
         }
         
+        /* Header content layout */
         .header-content {
             display: flex;
             align-items: center;
             gap: 12px;
         }
         
+        /* Header buttons container */
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Logo styling */
         .logo {
             display: flex;
             align-items: center;
@@ -66,6 +79,7 @@
             height: 16px;
         }
         
+        /* Panel title styling */
         h1 {
             font-size: 14px;
             font-weight: 600;
@@ -74,6 +88,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
+        /* Scan button styling for DevTools context */
         .scan-button {
             background: #0e639c;
             color: #ffffff;
@@ -97,7 +112,31 @@
             cursor: not-allowed;
         }
         
-        /* Simplified category tabs */
+        /* Clear button styling for DevTools context */
+        .clear-button {
+            background: #424242;
+            color: #cccccc;
+            border: 1px solid #3c3c3c;
+            padding: 6px 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: all 0.1s ease;
+        }
+        
+        .clear-button:hover {
+            background: #4f4f4f;
+            color: #ffffff;
+            border-color: #5a5a5a;
+        }
+        
+        .clear-button:active {
+            background: #3c3c3c;
+        }
+        
+        /* Simplified category tabs for DevTools */
         .category-tabs {
             background: #2d2d30;
             border-bottom: 1px solid #3c3c3c;
@@ -429,7 +468,10 @@
                 </div>
                 <h1>Token Inspector</h1>
             </div>
-            <button id="scan-button" class="scan-button">Scan</button>
+            <div class="header-buttons">
+                <button id="clear-highlight-button" class="clear-button">Clear Highlight</button>
+                <button id="scan-button" class="scan-button">Scan</button>
+            </div>
         </div>
 
         <div id="scanner-state" class="scanner-state">
@@ -478,7 +520,7 @@
             </div>
         </div>
     </div>
-    <script src="shared-scanner.js"></script>
+    <script src="../shared/shared-scanner.js"></script>
     <script src="panel.js"></script>
 </body>
 </html> 

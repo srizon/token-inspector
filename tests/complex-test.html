@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Inspector Complex Test Page</title>
+    <style>
+        /* Base page styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        /* Main container for test content */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Page title styling */
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        /* Section containers for organizing test cases */
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        /* Section headings */
+        .section h2 {
+            color: #555;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        /* Test Case 1: Non-standard colors - SHOULD be flagged as violations */
+        .bad-colors {
+            background-color: #ff6b6b; /* Hardcoded hex color */
+            color: #ffffff; /* Hardcoded white */
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        
+        /* Test Case 2: Non-standard colors with different formats - SHOULD be flagged */
+        .bad-colors-2 {
+            background-color: rgb(74, 144, 226); /* Hardcoded RGB color */
+            color: hsl(0, 0%, 100%); /* Hardcoded HSL color */
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        
+        /* Test Case 3: Non-standard spacing values - SHOULD be flagged */
+        .bad-spacing {
+            margin: 25px; /* Hardcoded margin */
+            padding: 18px; /* Hardcoded padding */
+            width: 350px; /* Hardcoded width */
+            height: 120px; /* Hardcoded height */
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        /* Test Case 4: Non-standard typography values - SHOULD be flagged */
+        .bad-typography {
+            font-size: 19px; /* Hardcoded font size */
+            line-height: 1.7; /* Hardcoded line height */
+            font-weight: 600; /* Hardcoded font weight */
+            color: #333;
+            margin: 15px 0;
+        }
+        
+        /* Test Case 5: Non-standard border values - SHOULD be flagged */
+        .bad-borders {
+            border: 3px solid #ddd; /* Hardcoded border width */
+            border-radius: 10px; /* Hardcoded border radius */
+            padding: 20px;
+            background-color: #fafafa;
+        }
+        
+        /* Test Case 6: Good examples using CSS variables - should NOT be flagged */
+        .good-example {
+            color: var(--text-color, #333); /* CSS variable with fallback */
+            padding: var(--spacing-md, 1rem); /* CSS variable with fallback */
+            font-size: var(--font-size-base, 1rem); /* CSS variable with fallback */
+            border-radius: var(--border-radius-sm, 0.25rem); /* CSS variable with fallback */
+            background-color: var(--bg-color, #f8f9fa); /* CSS variable with fallback */
+            border: 1px solid var(--border-color, #dee2e6); /* CSS variable with fallback */
+        }
+        
+        /* Test Case 7: Button with hardcoded values - SHOULD be flagged */
+        .button {
+            background-color: #007bff; /* Hardcoded button color */
+            color: white;
+            padding: 12px 24px; /* Hardcoded padding */
+            border: none;
+            border-radius: 6px; /* Hardcoded border radius */
+            font-size: 16px; /* Hardcoded font size */
+            cursor: pointer;
+            margin: 10px 5px; /* Hardcoded margin */
+        }
+        
+        /* Test Case 8: Nested elements with mixed good/bad practices */
+        .nested-container {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .nested-container .bad-nested {
+            color: #e74c3c; /* Hardcoded color in nested element */
+            font-size: 18px; /* Hardcoded font size */
+            margin: 15px 0; /* Hardcoded margin */
+        }
+        
+        .nested-container .good-nested {
+            color: var(--success-color, #28a745); /* CSS variable in nested element */
+            font-size: var(--font-size-sm, 0.875rem); /* CSS variable in nested element */
+            margin: var(--spacing-sm, 0.5rem) 0; /* CSS variable in nested element */
+        }
+        
+        /* Test Case 9: Complex selectors with hardcoded values */
+        .complex-selector > div:nth-child(2) {
+            background-color: #ffc107; /* Hardcoded color in complex selector */
+            padding: 25px; /* Hardcoded padding */
+            border-radius: 12px; /* Hardcoded border radius */
+        }
+        
+        /* Test Case 10: Pseudo-elements with hardcoded values */
+        .pseudo-element::before {
+            content: '';
+            display: block;
+            width: 50px; /* Hardcoded width */
+            height: 50px; /* Hardcoded height */
+            background-color: #dc3545; /* Hardcoded color */
+            border-radius: 50%; /* Hardcoded border radius */
+        }
+        
+        /* Test Case 11: Media queries with hardcoded values */
+        @media (max-width: 768px) {
+            .responsive-element {
+                font-size: 14px; /* Hardcoded font size in media query */
+                padding: 10px; /* Hardcoded padding in media query */
+                margin: 8px; /* Hardcoded margin in media query */
+            }
+        }
+        
+        /* Test Case 12: Flagged CSS variables - SHOULD be flagged */
+        .flagged-variables {
+            color: var(--up-green); /* Flagged variable */
+            background-color: var(--brand-green); /* Flagged variable */
+            border-color: var(--up-black); /* Flagged variable */
+            font-size: var(--font-size-base, 16px); /* Good variable with fallback */
+        }
+        
+        /* Test Case 13: Zero values - should NOT be flagged */
+        .zero-values {
+            margin: 0;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0;
+        }
+        
+        /* Test Case 14: Inherited and initial values - should NOT be flagged */
+        .inherited-values {
+            color: inherit;
+            font-size: initial;
+            margin: unset;
+        }
+        
+        /* Test Case 15: Transparent and currentColor - should NOT be flagged */
+        .transparent-values {
+            background-color: transparent;
+            color: currentColor;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main test container -->
+    <div class="container">
+        <h1>Token Inspector Complex Test Scenarios</h1>
+        <p>This page contains various test scenarios to verify the Token Inspector's ability to detect design token violations in complex situations.</p>
+        
+        <!-- Test Section 1: Color Violations -->
+        <div class="section">
+            <h2>Color Violations</h2>
+            <p>These elements use hardcoded colors that should be flagged:</p>
+            
+            <div class="bad-colors">
+                This element uses hardcoded hex colors (#ff6b6b, #ffffff) - SHOULD be flagged
+            </div>
+            
+            <div class="bad-colors-2">
+                This element uses hardcoded RGB and HSL colors - SHOULD be flagged
+            </div>
+        </div>
+        
+        <!-- Test Section 2: Spacing Violations -->
+        <div class="section">
+            <h2>Spacing Violations</h2>
+            <p>These elements use hardcoded spacing values that should be flagged:</p>
+            
+            <div class="bad-spacing">
+                This element uses hardcoded margin, padding, width, and height values - SHOULD be flagged
+            </div>
+        </div>
+        
+        <!-- Test Section 3: Typography Violations -->
+        <div class="section">
+            <h2>Typography Violations</h2>
+            <p>These elements use hardcoded typography values that should be flagged:</p>
+            
+            <div class="bad-typography">
+                This element uses hardcoded font-size, line-height, and font-weight - SHOULD be flagged
+            </div>
+        </div>
+        
+        <!-- Test Section 4: Border Violations -->
+        <div class="section">
+            <h2>Border Violations</h2>
+            <p>These elements use hardcoded border values that should be flagged:</p>
+            
+            <div class="bad-borders">
+                This element uses hardcoded border width and border-radius - SHOULD be flagged
+            </div>
+        </div>
+        
+        <!-- Test Section 5: Good Examples -->
+        <div class="section">
+            <h2>Good Examples (Should NOT be flagged)</h2>
+            <p>These elements use CSS variables and should NOT be flagged:</p>
+            
+            <div class="good-example">
+                This element uses CSS variables with fallbacks - should NOT be flagged
+            </div>
+        </div>
+        
+        <!-- Test Section 6: Button Examples -->
+        <div class="section">
+            <h2>Button Examples</h2>
+            <p>Buttons with hardcoded values that should be flagged:</p>
+            
+            <button class="button">Button with hardcoded values</button>
+        </div>
+        
+        <!-- Test Section 7: Nested Elements -->
+        <div class="section">
+            <h2>Nested Elements</h2>
+            <p>Testing nested elements with mixed good and bad practices:</p>
+            
+            <div class="nested-container">
+                <div class="bad-nested">
+                    Nested element with hardcoded values - SHOULD be flagged
+                </div>
+                <div class="good-nested">
+                    Nested element with CSS variables - should NOT be flagged
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Section 8: Complex Selectors -->
+        <div class="section">
+            <h2>Complex Selectors</h2>
+            <p>Testing elements with complex CSS selectors:</p>
+            
+            <div class="complex-selector">
+                <div>First child</div>
+                <div>Second child with hardcoded values - SHOULD be flagged</div>
+                <div>Third child</div>
+            </div>
+        </div>
+        
+        <!-- Test Section 9: Pseudo-elements -->
+        <div class="section">
+            <h2>Pseudo-elements</h2>
+            <p>Testing pseudo-elements with hardcoded values:</p>
+            
+            <div class="pseudo-element">
+                Element with ::before pseudo-element containing hardcoded values - SHOULD be flagged
+            </div>
+        </div>
+        
+        <!-- Test Section 10: Responsive Elements -->
+        <div class="section">
+            <h2>Responsive Elements</h2>
+            <p>Testing elements with hardcoded values in media queries:</p>
+            
+            <div class="responsive-element">
+                This element has hardcoded values in media queries - SHOULD be flagged on mobile
+            </div>
+        </div>
+        
+        <!-- Test Section 11: Flagged Variables -->
+        <div class="section">
+            <h2>Flagged CSS Variables</h2>
+            <p>Testing elements that use flagged CSS variables:</p>
+            
+            <div class="flagged-variables">
+                This element uses flagged CSS variables - SHOULD be flagged
+            </div>
+        </div>
+        
+        <!-- Test Section 12: Edge Cases -->
+        <div class="section">
+            <h2>Edge Cases</h2>
+            <p>Testing edge cases that should NOT be flagged:</p>
+            
+            <div class="zero-values">
+                Zero values should NOT be flagged
+            </div>
+            
+            <div class="inherited-values">
+                Inherited and initial values should NOT be flagged
+            </div>
+            
+            <div class="transparent-values">
+                Transparent and currentColor values should NOT be flagged
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

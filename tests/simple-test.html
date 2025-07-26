@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Token Inspector Test</title>
     <style>
+        /* CSS Variables for testing proper token usage */
         :root {
             --text-dark-on-inverse: #333;
             --spacing-md: 1rem;
             --font-size-base: 16px;
             --border-radius-sm: 4px;
         }
+        
+        /* Base page styles */
         body {
             margin: auto;
             margin-top: 200px;
@@ -19,20 +22,22 @@
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             line-height: 1.5;
         }
+        
+        /* Test elements using proper CSS variables - should NOT be flagged */
         .test-element-1 {
             color: var(--text-dark-on-inverse);
         }
         
         .test-element-2 {
-            color: var(--text-dark-on-inverse, #333);
+            color: var(--text-dark-on-inverse, #333); /* With fallback */
         }
         
         .test-element-3 {
-            color: var( --text-dark-on-inverse );
+            color: var( --text-dark-on-inverse ); /* With spaces */
         }
         
         .test-element-4 {
-            color: var( --text-dark-on-inverse , #333 );
+            color: var( --text-dark-on-inverse , #333 ); /* With spaces and fallback */
         }
         
         .test-element-5 {
@@ -47,23 +52,25 @@
             border-radius: var(--border-radius-sm);
         }
 
+        /* Test element using undefined variable - should be flagged */
         .test-element-8 {
             color: var(--white);
         }
         
-        /* These should still be flagged as non-standard */
+        /* Test elements with hardcoded values - SHOULD be flagged as violations */
         .bad-element-1 {
-            color: #ff6b6b;
+            color: #ff6b6b; /* Hardcoded hex color */
         }
         
         .bad-element-2 {
-            color: rgb(74, 144, 226);
+            color: rgb(74, 144, 226); /* Hardcoded RGB color */
         }
         
         .bad-element-3 {
-            padding: 25px;
+            padding: 25px; /* Hardcoded spacing */
         }
         
+        /* Test element with zero values - should NOT be flagged */
         .zero-spacing-element {
             margin: 0px;
             padding: 0px;
@@ -74,6 +81,7 @@
     <h1>CSS Variable Detection Test</h1>
     <p>This page tests the updated CSS variable detection in Token Inspector.</p>
     
+    <!-- Test elements using proper CSS variables -->
     <div class="test-element-1">
         This uses: color: var(--text-dark-on-inverse) - should NOT be flagged
     </div>
@@ -101,27 +109,28 @@
     <div class="test-element-7">
         This uses: border-radius: var(--border-radius-sm) - should NOT be flagged
     </div>
-
+    
+    <!-- Test element with undefined variable -->
     <div class="test-element-8">
-        This uses: color: var(--white) - SHOULD be flagged
+        This uses: color: var(--white) - should be flagged as undefined variable
     </div>
     
-    <hr>
-    
+    <!-- Test elements with hardcoded values that should be flagged -->
     <div class="bad-element-1">
-        This uses: color: #ff6b6b - SHOULD be flagged
+        This uses: color: #ff6b6b - SHOULD be flagged as hardcoded color
     </div>
     
     <div class="bad-element-2">
-        This uses: color: rgb(74, 144, 226) - SHOULD be flagged
+        This uses: color: rgb(74, 144, 226) - SHOULD be flagged as hardcoded color
     </div>
     
     <div class="bad-element-3">
-        This uses: padding: 25px - SHOULD be flagged
+        This uses: padding: 25px - SHOULD be flagged as hardcoded spacing
     </div>
     
+    <!-- Test element with zero values -->
     <div class="zero-spacing-element">
-        This uses: margin: 0px and padding: 0px - should NOT be flagged (0px is ignored)
+        This uses: margin: 0px, padding: 0px - should NOT be flagged (zero values are allowed)
     </div>
 </body>
 </html> 

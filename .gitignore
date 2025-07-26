@@ -51,5 +51,18 @@ temp/
 .env.test.local
 .env.production.local
 
-# Experimental features
-popup-new/ 
+# Browser extension specific
+*.crx
+*.pem
+*.zip
+
+# Backup files
+*.bak
+*.backup
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Local development
+.local/ 

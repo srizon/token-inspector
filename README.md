@@ -35,22 +35,32 @@ Token Inspector is a Chrome extension designed for developers and designers to i
 
 ```
 token-inspector/
-├── manifest.json          # Extension manifest
-├── popup.html/.js/.css    # Popup UI and logic
-├── content.js             # Content script for page analysis
-├── shared-scanner.js      # Shared scanning logic
-├── panel.html/.js         # DevTools panel UI and logic
-├── devtools.html/.js      # DevTools integration
-├── assets/                # Category and navigation icons
-│   ├── icon-color.svg     # Color category icon
-│   ├── icon-text.svg      # Typography category icon
-│   ├── icon-spacing.svg   # Spacing category icon
-│   ├── icon-border.svg    # Border category icon
-│   └── icon-caret.svg     # Caret icon for navigation
-├── simple-test.html       # Basic test scenarios
-├── complex-test.html      # Complex test scenarios
-├── flagged-variables.json # Custom flagged variables
-└── README.md              # Project documentation
+├── manifest.json              # Extension manifest
+├── popup/                     # Popup UI and logic
+│   ├── popup.html
+│   ├── popup.js
+│   └── popup.css
+├── content/                   # Content script for page analysis
+│   └── content.js
+├── shared/                    # Shared scanning logic
+│   └── shared-scanner.js
+├── panel/                     # DevTools panel UI and logic
+│   ├── panel.html
+│   └── panel.js
+├── devtools/                  # DevTools integration
+│   ├── devtools.html
+│   └── devtools.js
+├── assets/                    # Category and navigation icons
+│   ├── icon-color.svg         # Color category icon
+│   ├── icon-text.svg          # Typography category icon
+│   ├── icon-spacing.svg       # Spacing category icon
+│   ├── icon-border.svg        # Border category icon
+│   └── icon-caret.svg         # Caret icon for navigation
+├── tests/                     # Test files for development
+│   ├── simple-test.html       # Basic test scenarios
+│   └── complex-test.html      # Complex test scenarios
+├── flagged-variables.json     # Custom flagged variables
+└── README.md                  # Project documentation
 ```
 
 ## Categories Analyzed
@@ -62,8 +72,8 @@ token-inspector/
 
 ## Test Files
 
-- `simple-test.html`: Basic test cases for common violations
-- `complex-test.html`: Complex scenarios with nested elements
+- `tests/simple-test.html`: Basic test cases for common violations
+- `tests/complex-test.html`: Complex scenarios with nested elements
 
 ## Performance
 
@@ -75,6 +85,16 @@ Token Inspector is optimized for speed and efficiency:
 - Minimal memory footprint and non-blocking UI updates
 
 ## Changelog
+
+### Version 1.8
+- **Project Reorganization**: Restructured codebase into organized folders for better maintainability
+  - Moved popup files to `popup/` directory
+  - Moved content script to `content/` directory
+  - Moved DevTools files to `devtools/` and `panel/` directories
+  - Moved shared logic to `shared/` directory
+  - Moved test files to `tests/` directory
+- Updated gitignore with additional patterns for browser extensions and development
+- Improved project structure documentation
 
 ### Version 1.7
 - Improved summary styling, spacing, and transitions
@@ -95,7 +115,6 @@ Token Inspector is optimized for speed and efficiency:
 - Added category-specific SVG icons
 - Improved layout, typography, and spacing
 - Better accessibility and keyboard navigation
-- Enhanced mobile responsiveness
 - Modular CSS structure
 - Performance optimizations and asset management
 

@@ -1,4 +1,3 @@
-
 {
   "manifest_version": 3,
   "name": "Token Inspector",
@@ -10,11 +9,13 @@
     "tabs"
   ],
   "host_permissions": [
-    "file://*"
+    "file://*",
+    "http://*/*",
+    "https://*/*"
   ],
-  "devtools_page": "devtools.html",
+  "devtools_page": "devtools/devtools.html",
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup/popup.html"
   },
   "web_accessible_resources": [
     {

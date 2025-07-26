@@ -1,7 +1,30 @@
-// Shared Token Inspector Scanner Logic
-// This module contains the common functionality used by both popup and devtools
-
+/**
+ * Shared Token Inspector Scanner Logic
+ * 
+ * This module contains the common functionality used by both popup and devtools panels.
+ * It provides a unified interface for scanning web pages for design token violations.
+ * 
+ * The scanner identifies:
+ * - Hardcoded color values (hex, rgb, hsl)
+ * - Hardcoded typography values (font-size, font-weight, line-height)
+ * - Hardcoded spacing values (margin, padding)
+ * - Hardcoded border values (border-radius)
+ * - Flagged CSS variables that should be replaced
+ * 
+ * @class TokenInspectorScanner
+ * @version 1.3
+ */
 class TokenInspectorScanner {
+    /**
+     * Initialize the scanner with configuration options
+     * 
+     * @param {Object} options - Configuration options
+     * @param {boolean} options.isDevTools - Whether running in DevTools context
+     * @param {Function} options.onResultsReady - Callback when results are available
+     * @param {Function} options.onScanStart - Callback when scan starts
+     * @param {Function} options.onScanComplete - Callback when scan completes
+     * @param {Function} options.onError - Callback when errors occur
+     */
     constructor(options = {}) {
         this.isDevTools = options.isDevTools || false;
         this.onResultsReady = options.onResultsReady || (() => {});
@@ -10,7 +33,10 @@ class TokenInspectorScanner {
         this.onError = options.onError || (() => {});
     }
 
-    // Start the scanning process
+    /**
+     * Start the scanning process
+     * Determines whether to use DevTools API or content script based on context
+     */
     startScan() {
         this.onScanStart();
         
@@ -21,43 +47,66 @@ class TokenInspectorScanner {
         }
     }
 
-    // Scan using DevTools API (for devtools panel)
+    /**
+     * Scan using DevTools API (for devtools panel)
+     * Injects content script and communicates via Chrome DevTools API
+     */
     scanWithDevTools() {
         console.log('Token Inspector DevTools: Starting scan...');
         
-        // Use the same approach as popup - inject content script and send message
-        chrome.scripting.executeScript({
-            target: { tabId: chrome.devtools.inspectedWindow.tabId },
-            files: ['content.js']
-        }).then(() => {
-            console.log('Token Inspector DevTools: Content script injected, sending runScan message...');
-            
-            // Wait a bit for the script to initialize, then send message
-            setTimeout(() => {
-                chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, { action: 'runScan' })
-                    .then(response => {
-                        console.log('Token Inspector DevTools: Scan message sent, response:', response);
-                        if (response && response.success && response.results) {
-                            // Results received immediately
-                            this.onScanComplete();
-                            this.onResultsReady(response.results);
-                        } else {
-                            // Wait for async results via message listener
-                            console.log('Token Inspector DevTools: Waiting for async scan results...');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Token Inspector DevTools: Error sending scan message:', err);
-                        this.onError(err);
-                    });
-            }, 200); // Increased wait time for content script initialization
-        }).catch(err => {
-            console.log('Token Inspector DevTools: Content script injection failed:', err);
-            this.onError(err);
+        // First, check if we can access the current tab
+        chrome.tabs.get(chrome.devtools.inspectedWindow.tabId, (tab) => {
+            if (chrome.runtime.lastError) {
+                console.warn('Token Inspector DevTools: Cannot access tab:', chrome.runtime.lastError.message);
+                this.onError(new Error('Cannot access tab: ' + chrome.runtime.lastError.message));
+                return;
+            }
+
+            // Check if the URL is injectable
+            const url = tab.url || '';
+            if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('devtools://')) {
+                console.warn('Token Inspector DevTools: Cannot inject into restricted URL:', url);
+                this.onError(new Error('Cannot inject into restricted URL: ' + url));
+                return;
+            }
+
+            // Use the same approach as popup - inject content script and send message
+            chrome.scripting.executeScript({
+                target: { tabId: chrome.devtools.inspectedWindow.tabId },
+                files: ['content/content.js']
+            }).then(() => {
+                console.log('Token Inspector DevTools: Content script injected, sending runScan message...');
+                
+                // Wait a bit for the script to initialize, then send message
+                setTimeout(() => {
+                    chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, { action: 'runScan' })
+                        .then(response => {
+                            console.log('Token Inspector DevTools: Scan message sent, response:', response);
+                            if (response && response.success && response.results) {
+                                // Results received immediately
+                                this.onScanComplete();
+                                this.onResultsReady(response.results);
+                            } else {
+                                // Wait for async results via message listener
+                                console.log('Token Inspector DevTools: Waiting for async scan results...');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Token Inspector DevTools: Error sending scan message:', err);
+                            this.onError(err);
+                        });
+                }, 200); // Increased wait time for content script initialization
+            }).catch(err => {
+                console.log('Token Inspector DevTools: Content script injection failed:', err);
+                this.onError(err);
+            });
         });
     }
 
-    // Scan using content script (for popup)
+    /**
+     * Scan using content script (for popup)
+     * Injects content script into the active tab and communicates via messaging
+     */
     scanWithContentScript() {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs.length === 0) {
@@ -66,12 +115,23 @@ class TokenInspectorScanner {
             }
             
             const tabId = tabs[0].id;
+            const tab = tabs[0];
+            
+            // Check if the URL is injectable
+            const url = tab.url || '';
+            if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('devtools://')) {
+                console.warn('Token Inspector Popup: Cannot inject into restricted URL:', url);
+                this.onError(new Error('Cannot inject into restricted URL: ' + url));
+                return;
+            }
             
             // Inject content script and run scan
             chrome.scripting.executeScript({ 
                 target: { tabId: tabId }, 
-                files: ['content.js'] 
-            }, () => {
+                files: ['content/content.js'] 
+            }).then(() => {
+                console.log('Token Inspector Popup: Content script injected successfully');
+                
                 // Wait a bit for the script to initialize
                 setTimeout(() => {
                     chrome.tabs.sendMessage(tabId, { action: 'runScan' })
@@ -91,17 +151,27 @@ class TokenInspectorScanner {
                             this.onError(err);
                         });
                 }, 100);
+            }).catch(err => {
+                console.error('Token Inspector Popup: Content script injection failed:', err);
+                this.onError(err);
             });
         });
     }
 
-    // Display results in the UI
+    /**
+     * Display results in the UI
+     * Converts results to HTML elements and handles both array and object formats
+     * 
+     * @param {Object|Array} results - Scan results in object or array format
+     * @param {HTMLElement} container - Container element to display results
+     * @param {HTMLElement} noResultsElement - Element to show when no results found
+     */
     displayResults(results, container, noResultsElement) {
         container.innerHTML = '';
 
         // Handle both array format (old) and object format (new)
         if (Array.isArray(results)) {
-            // Convert array format to object format
+            // Convert array format to object format for consistency
             const converted = {};
             results.forEach(item => {
                 let category = 'Other Properties';
@@ -112,7 +182,7 @@ class TokenInspectorScanner {
                 } else if (item.category === 'Spacing' || item.property.includes('Margin') || item.property.includes('Padding')) {
                     category = 'Spacing';
                 } else if (item.category === 'Border' || item.property.includes('Border')) {
-    category = 'Border';
+                    category = 'Border';
                 }
                 
                 if (!converted[category]) {
@@ -147,7 +217,13 @@ class TokenInspectorScanner {
         });
     }
 
-    // Create a category section
+    /**
+     * Create a category section with collapsible header
+     * 
+     * @param {string} category - Category name (Colors, Typography, etc.)
+     * @param {Array} items - Array of issue items for this category
+     * @returns {HTMLElement} Category section element
+     */
     createCategorySection(category, items) {
         const section = document.createElement('div');
         section.className = 'category-section';
@@ -164,6 +240,7 @@ class TokenInspectorScanner {
             list.appendChild(card);
         });
 
+        // Add click handler for collapsible functionality
         header.addEventListener('click', () => {
             const isHidden = list.style.display === 'none' || list.style.display === '';
             list.style.display = isHidden ? 'block' : 'none';
@@ -174,12 +251,17 @@ class TokenInspectorScanner {
         return section;
     }
 
-    // Create an issue card
+    /**
+     * Create an issue card for a single violation
+     * 
+     * @param {Object} itemData - Issue data containing selector, property, value, etc.
+     * @returns {HTMLElement} Issue card element
+     */
     createIssueCard(itemData) {
         const li = document.createElement('li');
         li.className = 'result-item-card';
         
-        // Format the property name for display
+        // Format the property name for display (convert kebab-case to Title Case)
         const propertyName = itemData.property.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
         
         li.innerHTML = `
@@ -192,6 +274,7 @@ class TokenInspectorScanner {
             <div class="item-path" title="${itemData.path}">${itemData.path}</div>
         `;
 
+        // Add click handler to highlight element on page
         li.addEventListener('click', () => {
             this.highlightElement(itemData);
         });
@@ -199,7 +282,11 @@ class TokenInspectorScanner {
         return li;
     }
 
-    // Highlight element on the page
+    /**
+     * Highlight element on the page using DevTools API or content script
+     * 
+     * @param {Object} itemData - Issue data containing elementId and other details
+     */
     highlightElement(itemData) {
         if (this.isDevTools) {
             // Use DevTools API for highlighting
@@ -245,7 +332,7 @@ class TokenInspectorScanner {
                         }
                         element.classList.add('ds-lint-highlight');
                         
-                        // Show tooltip
+                        // Show tooltip with issue details
                         const showTooltip = (element, issueData) => {
                             // Remove any existing tooltip
                             const existingTooltip = document.querySelector('.ds-lint-tooltip');
@@ -321,15 +408,16 @@ class TokenInspectorScanner {
                             // Position initially
                             positionTooltip();
 
-                            // Reposition on window resize
-                            const resizeHandler = () => positionTooltip();
-                            window.addEventListener('resize', resizeHandler);
+                            // Reposition on window resize and scroll
+                            const repositionHandler = () => positionTooltip();
+                            window.addEventListener('resize', repositionHandler);
+                            window.addEventListener('scroll', repositionHandler, { passive: true });
 
                             // Store reference for cleanup
                             window.dsLint = window.dsLint || {};
                             window.dsLint.currentTooltip = {
                                 element: tooltip,
-                                resizeHandler: resizeHandler
+                                repositionHandler: repositionHandler
                             };
                         };
 
@@ -362,7 +450,8 @@ class TokenInspectorScanner {
                                 
                                 // Clean up tooltip event listeners
                                 if (window.dsLint && window.dsLint.currentTooltip) {
-                                    window.removeEventListener('resize', window.dsLint.currentTooltip.resizeHandler);
+                                    window.removeEventListener('resize', window.dsLint.currentTooltip.repositionHandler);
+                                    window.removeEventListener('scroll', window.dsLint.currentTooltip.repositionHandler);
                                     window.dsLint.currentTooltip = null;
                                 }
                             }
