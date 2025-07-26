@@ -85,9 +85,6 @@ token-inspector/
 │   ├── icon-spacing.svg   # Spacing category icon
 │   ├── icon-border.svg    # Border category icon
 │   └── icon-caret.svg     # Caret icon for navigation
-├── popup-new/             # New popup interface (experimental)
-│   ├── popup-new.html     # Alternative popup interface
-│   └── styles.css         # Styles for new popup
 ├── simple-test.html       # Basic test scenarios
 ├── complex-test.html      # Complex test scenarios
 ├── flagged-variables.json # Custom flagged variables
@@ -130,7 +127,6 @@ The extension has been significantly optimized for performance with the followin
 - **Performance Improvements**: Reduced breadcrumb depth from 10 to 3 levels for better performance
 - **UI Refinements**: Cleaned up console logging and improved code organization
 - **New Caret Icon**: Added icon-caret.svg for enhanced navigation elements
-- **Experimental Popup Interface**: Added popup-new directory with alternative interface design
 - **Code Cleanup**: Removed unnecessary console logs and improved code structure
 - **Better Element Selection**: Enhanced element tracking and selection functionality
 
