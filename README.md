@@ -42,6 +42,11 @@ token-inspector/
 ├── panel.html/.js         # DevTools panel UI and logic
 ├── devtools.html/.js      # DevTools integration
 ├── assets/                # Category and navigation icons
+│   ├── icon-color.svg     # Color category icon
+│   ├── icon-text.svg      # Typography category icon
+│   ├── icon-spacing.svg   # Spacing category icon
+│   ├── icon-border.svg    # Border category icon
+│   └── icon-caret.svg     # Caret icon for navigation
 ├── simple-test.html       # Basic test scenarios
 ├── complex-test.html      # Complex test scenarios
 ├── flagged-variables.json # Custom flagged variables
@@ -71,13 +76,13 @@ Token Inspector is optimized for speed and efficiency:
 
 ## Changelog
 
-### 1.7
+### Version 1.7
 - Improved summary styling, spacing, and transitions
 - Enhanced highlighted state styling and visual hierarchy
 - Test file improvements for consistency
 - UI polish: refined spacing, borders, and overall visual consistency
 
-### 1.6
+### Version 1.6
 - Enhanced breadcrumb system with better formatting and depth limiting
 - Optimized category ordering in the UI
 - Performance improvements for faster scanning
@@ -85,7 +90,7 @@ Token Inspector is optimized for speed and efficiency:
 - New caret icon for navigation
 - Improved element selection and tracking
 
-### 1.5
+### Version 1.5
 - Complete UI redesign with a minimal, modern look
 - Added category-specific SVG icons
 - Improved layout, typography, and spacing
@@ -94,26 +99,26 @@ Token Inspector is optimized for speed and efficiency:
 - Modular CSS structure
 - Performance optimizations and asset management
 
-### 1.4
+### Version 1.4
 - Improved visual hierarchy and summary view
 - Added category-specific icons
 - Enhanced accessibility and keyboard navigation
 - Better mobile responsiveness
 - Modular CSS and improved test file organization
 
-### 1.3
+### Version 1.3
 - Enhanced element highlighting with pulse animations
 - Improved user experience and visual feedback
 - Optimized styling for highlighting
 - Code cleanup and streamlined project structure
 
-### 1.2
+### Version 1.2
 - Support for flagged CSS custom properties
 - Enhanced tooltips for element highlighting
 - Added comprehensive test files for flagged variables
 - Improved error handling and tooltip display
 
-### 1.1
+### Version 1.1
 - Code cleanup and removal of unnecessary files
 - Streamlined project structure
 - Updated documentation
