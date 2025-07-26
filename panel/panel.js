@@ -381,10 +381,15 @@ document.addEventListener('DOMContentLoaded', function() {
             <br>
             <span class="issue-property">  ${itemData.property}</span>
             <span class="issue-colon">:</span>
-            <span class="issue-value">${formattedValue}</span>
+            <span class="issue-value-editable" data-original-value="${itemData.value}">${formattedValue}</span>
             <span class="issue-semicolon">;</span>
             <br>
             <span class="issue-brace">}</span>
+            <div class="edit-controls">
+                <button class="apply-button">Apply</button>
+                <button class="cancel-button">Cancel</button>
+                <span class="edit-status"></span>
+            </div>
         `;
 
         // Add click handler for element highlighting
@@ -402,23 +407,28 @@ document.addEventListener('DOMContentLoaded', function() {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (chrome.devtools && chrome.devtools.inspectedWindow) {
                     // Use DevTools API for highlighting
-                    chrome.devtools.inspectedWindow.eval(`
-                        (function() {
+                    const escapeString = (str) => {
+                        if (!str) return '';
+                        return str.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                    };
+                    
+                    const highlightScript = `
+                        (function(elementId, selector, path) {
                             // Try multiple ways to find the element
-                            let element = document.querySelector('[data-ds-lint-id="${itemData.elementId}"]');
+                            let element = document.querySelector('[data-ds-lint-id="' + elementId + '"]');
                             
                             // If not found by data attribute, try by selector
-                            if (!element && itemData.selector) {
+                            if (!element && selector) {
                                 try {
-                                    element = document.querySelector(itemData.selector);
+                                    element = document.querySelector(selector);
                                 } catch (e) {
                                     // Invalid selector, continue
                                 }
                             }
                             
                             // If still not found, try to find by path
-                            if (!element && itemData.path) {
-                                const pathParts = itemData.path.split(' › ');
+                            if (!element && path) {
+                                const pathParts = path.split(' › ');
                                 if (pathParts.length > 0) {
                                     try {
                                         element = document.querySelector(pathParts[pathParts.length - 1]);
@@ -508,8 +518,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                     }
                                 }, 30000);
                             }
-                        })()
-                    `);
+                        })('${escapeString(itemData.elementId)}', '${escapeString(itemData.selector || '')}', '${escapeString(itemData.path || '')}')
+                    `;
+                    
+                    chrome.devtools.inspectedWindow.eval(highlightScript);
                 } else {
                     // Fall back to content script
                     chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ['content/content.js'] }).then(() => {
@@ -526,6 +538,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+        
+        // Add editing functionality
+        setupEditingHandlers(card, itemData);
+        
         return card;
     }
 
@@ -541,6 +557,289 @@ document.addEventListener('DOMContentLoaded', function() {
         // This ensures hex values stay hex, rgb values stay rgb, etc.
         return value;
     }
+
+    /**
+     * Setup editing handlers for an issue card
+     * 
+     * @param {HTMLElement} card - The issue card element
+     * @param {Object} itemData - The issue data
+     */
+    function setupEditingHandlers(card, itemData) {
+        const valueElement = card.querySelector('.issue-value-editable');
+        const editControls = card.querySelector('.edit-controls');
+        const applyButton = card.querySelector('.apply-button');
+        const cancelButton = card.querySelector('.cancel-button');
+        const statusElement = card.querySelector('.edit-status');
+        
+        let originalValue = itemData.value;
+        let isEditing = false;
+        
+        // Handle value element click to start editing
+        valueElement.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent card click
+            
+            if (!isEditing) {
+                startEditing();
+            }
+        });
+        
+        // Handle apply button click
+        applyButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            applyChanges();
+        });
+        
+        // Handle cancel button click
+        cancelButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            cancelEditing();
+        });
+        
+        // Handle Enter key in edit mode
+        valueElement.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                applyChanges();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                cancelEditing();
+            }
+        });
+        
+        function startEditing() {
+            isEditing = true;
+            valueElement.contentEditable = true;
+            valueElement.classList.add('editing');
+            editControls.classList.add('visible');
+            applyButton.disabled = false;
+            statusElement.textContent = '';
+            statusElement.className = 'edit-status';
+            
+            // Focus and select all text
+            valueElement.focus();
+            const range = document.createRange();
+            range.selectNodeContents(valueElement);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+        
+        function cancelEditing() {
+            isEditing = false;
+            valueElement.contentEditable = false;
+            valueElement.classList.remove('editing');
+            editControls.classList.remove('visible');
+            valueElement.textContent = formatCssValue(originalValue);
+            statusElement.textContent = '';
+        }
+        
+        function applyChanges() {
+            const newValue = valueElement.textContent.trim();
+            
+            if (!newValue) {
+                statusElement.textContent = 'Value cannot be empty';
+                statusElement.className = 'edit-status error';
+                return;
+            }
+            
+            // Validate CSS value format
+            if (!isValidCssValue(newValue, itemData.property)) {
+                statusElement.textContent = 'Invalid CSS value format';
+                statusElement.className = 'edit-status error';
+                return;
+            }
+            
+            // Apply the change to the web page
+            applyCssChange(itemData, newValue)
+                .then(() => {
+                    // Update the original value
+                    originalValue = newValue;
+                    itemData.value = newValue;
+                    
+                    // Exit edit mode
+                    isEditing = false;
+                    valueElement.contentEditable = false;
+                    valueElement.classList.remove('editing');
+                    editControls.classList.remove('visible');
+                    valueElement.textContent = formatCssValue(newValue);
+                    
+                    // Show success message
+                    statusElement.textContent = 'Applied successfully';
+                    statusElement.className = 'edit-status';
+                    
+                    // Clear success message after 2 seconds
+                    setTimeout(() => {
+                        statusElement.textContent = '';
+                    }, 2000);
+                })
+                .catch((error) => {
+                    statusElement.textContent = 'Failed to apply: ' + error.message;
+                    statusElement.className = 'edit-status error';
+                });
+        }
+    }
+
+    /**
+     * Validate CSS value format
+     * 
+     * @param {string} value - The CSS value to validate
+     * @param {string} property - The CSS property name
+     * @returns {boolean} Whether the value is valid
+     */
+    function isValidCssValue(value, property) {
+        // Basic validation for common CSS properties
+        const propertyLower = property.toLowerCase();
+        
+        // CSS Custom Properties (variables) - always valid
+        if (/^var\(--[a-zA-Z0-9_-]+(?:,\s*[^)]+)?\)$/.test(value)) return true;
+        
+        // Color values
+        if (propertyLower.includes('color') || propertyLower.includes('background')) {
+            // Hex colors
+            if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) return true;
+            // RGB/RGBA colors
+            if (/^rgba?\([^)]+\)$/.test(value)) return true;
+            // Named colors
+            if (/^[a-zA-Z]+$/.test(value)) return true;
+            // HSL/HSLA colors
+            if (/^hsla?\([^)]+\)$/.test(value)) return true;
+            return false;
+        }
+        
+        // Numeric values with units
+        if (propertyLower.includes('width') || propertyLower.includes('height') || 
+            propertyLower.includes('margin') || propertyLower.includes('padding') ||
+            propertyLower.includes('border') || propertyLower.includes('font-size')) {
+            // Numbers with units (px, em, rem, %, etc.)
+            if (/^[\d.]+(px|em|rem|%|vh|vw|pt|cm|mm|in)$/.test(value)) return true;
+            // Just numbers (for some properties)
+            if (/^[\d.]+$/.test(value)) return true;
+            return false;
+        }
+        
+        // Font weight
+        if (propertyLower.includes('font-weight')) {
+            if (/^[\d]+$/.test(value) || /^(normal|bold|bolder|lighter)$/.test(value)) return true;
+            return false;
+        }
+        
+        // Line height
+        if (propertyLower.includes('line-height')) {
+            if (/^[\d.]+$/.test(value) || /^[\d.]+(px|em|rem|%)$/.test(value) || /^normal$/.test(value)) return true;
+            return false;
+        }
+        
+        // Default: accept any non-empty string
+        return value.length > 0;
+    }
+
+    /**
+     * Apply CSS change to the web page
+     * 
+     * @param {Object} itemData - The issue data
+     * @param {string} newValue - The new CSS value
+     * @returns {Promise} Promise that resolves when the change is applied
+     */
+    function applyCssChange(itemData, newValue) {
+        return new Promise((resolve, reject) => {
+            if (chrome.devtools && chrome.devtools.inspectedWindow) {
+                // Create the script with proper parameter passing and escape special characters
+                const escapeString = (str) => {
+                    if (!str) return '';
+                    return str.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                };
+                
+                const script = `
+                    (function(elementId, selector, path, property, originalValue, newValue) {
+                        try {
+                            // Try multiple ways to find the element
+                            let element = document.querySelector('[data-ds-lint-id="' + elementId + '"]');
+                            
+                            // If not found by data attribute, try by selector
+                            if (!element && selector) {
+                                try {
+                                    element = document.querySelector(selector);
+                                } catch (e) {
+                                    // Invalid selector, continue
+                                }
+                            }
+                            
+                            // If still not found, try to find by path
+                            if (!element && path) {
+                                const pathParts = path.split(' › ');
+                                if (pathParts.length > 0) {
+                                    try {
+                                        element = document.querySelector(pathParts[pathParts.length - 1]);
+                                    } catch (e) {
+                                        // Invalid path selector, continue
+                                    }
+                                }
+                            }
+                            
+                            if (element) {
+                                // Apply the CSS change
+                                element.style.setProperty(property, newValue, 'important');
+                                
+                                // Store the change for potential reversion
+                                if (!window.dsLint) window.dsLint = {};
+                                if (!window.dsLint.appliedChanges) window.dsLint.appliedChanges = [];
+                                
+                                window.dsLint.appliedChanges.push({
+                                    elementId: elementId,
+                                    property: property,
+                                    originalValue: originalValue,
+                                    newValue: newValue,
+                                    timestamp: Date.now()
+                                });
+                                
+                                return { success: true, message: 'CSS change applied successfully' };
+                            } else {
+                                return { success: false, message: 'Element not found' };
+                            }
+                        } catch (error) {
+                            return { success: false, message: error.message };
+                        }
+                    })('${escapeString(itemData.elementId)}', '${escapeString(itemData.selector || '')}', '${escapeString(itemData.path || '')}', '${escapeString(itemData.property)}', '${escapeString(itemData.value)}', '${escapeString(newValue)}')
+                `;
+                
+                chrome.devtools.inspectedWindow.eval(script, (result, isException) => {
+                    if (isException) {
+                        reject(new Error('Failed to execute script: ' + isException.value));
+                    } else if (result && result.success) {
+                        resolve(result);
+                    } else {
+                        reject(new Error(result ? result.message : 'Unknown error'));
+                    }
+                });
+            } else {
+                // Fall back to content script messaging
+                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                    if (tabs.length > 0) {
+                        chrome.tabs.sendMessage(tabs[0].id, { 
+                            action: 'applyCssChange',
+                            elementId: itemData.elementId,
+                            property: itemData.property,
+                            newValue: newValue,
+                            selector: itemData.selector,
+                            path: itemData.path
+                        }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                reject(new Error('Failed to send message: ' + chrome.runtime.lastError.message));
+                            } else if (response && response.success) {
+                                resolve(response);
+                            } else {
+                                reject(new Error(response ? response.message : 'Unknown error'));
+                            }
+                        });
+                    } else {
+                        reject(new Error('No active tab found'));
+                    }
+                });
+            }
+        });
+    }
+
+
 
     /**
      * Clear highlight from the page
@@ -610,6 +909,8 @@ document.addEventListener('DOMContentLoaded', function() {
             startScan();
         });
     }
+
+
 
     /**
      * Add click event listener for the clear highlight button

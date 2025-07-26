@@ -344,21 +344,108 @@
         
         .issue-colon {
             color: #d4d4d4;
-            margin-right: 4px;
+            margin-right: 2px;
         }
         
         .issue-value {
             color: #ce9178;
             font-weight: 400;
-            margin-right: 4px;
+            margin-right: 2px;
         }
         
         .issue-semicolon {
             color: #d4d4d4;
-            margin-right: 8px;
+            margin-right: 2px;
         }
         
-
+        /* Editable value styles */
+        .issue-value-editable {
+            color: #ce9178;
+            font-weight: 400;
+            cursor: pointer;
+            padding: 1px;
+            border-radius: 2px;
+            transition: background-color 0.1s ease;
+            display: inline-block;
+        }
+        
+        .issue-value-editable:hover {
+            background: #3c3c3c;
+        }
+        
+        .issue-value-editable.editing {
+            background: #2d2d30;
+            border: 1px solid #007acc;
+            outline: none;
+            color: #ffffff;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: inherit;
+            /* min-width: 80px; */
+        }
+        
+        .edit-controls {
+            display: none;
+            margin-top: 8px;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .edit-controls.visible {
+            display: flex;
+        }
+        
+        .apply-button {
+            background: #0e639c;
+            color: #ffffff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: background-color 0.1s ease;
+        }
+        
+        .apply-button:hover {
+            background: #1177bb;
+        }
+        
+        .apply-button:disabled {
+            background: #3c3c3c;
+            color: #6a6a6a;
+            cursor: not-allowed;
+        }
+        
+        .cancel-button {
+            background: #424242;
+            color: #cccccc;
+            border: 1px solid #3c3c3c;
+            padding: 4px 8px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: all 0.1s ease;
+        }
+        
+        .cancel-button:hover {
+            background: #4f4f4f;
+            color: #ffffff;
+        }
+        
+        .edit-status {
+            font-size: 11px;
+            color: #6a9955;
+            font-weight: 500;
+        }
+        
+        .edit-status.error {
+            color: #f44747;
+        }
         
         /* Simplified no results message */
         .no-results {

@@ -8,6 +8,8 @@ Token Inspector is a Chrome extension designed for developers and designers to i
 - **Categorized Results**: Organizes findings by design system categories (Colors, Typography, Spacing, Border).
 - **Minimal, Modern UI**: Clean, accessible interface with tabbed navigation and detailed violation info.
 - **DevTools Integration**: Adds a dedicated panel in Chrome DevTools for advanced analysis and element highlighting.
+- **Inline CSS Editing**: Click-to-edit functionality for quick CSS value changes directly in the DevTools panel.
+- **Change Management**: Track and revert applied CSS changes with built-in change history.
 - **Shared Scanning Logic**: Consistent analysis across popup and DevTools via a shared module.
 - **Performance Optimized**: Efficient scanning and caching for minimal page impact.
 - **Test Files Included**: Comprehensive test files for various scenarios.
@@ -29,7 +31,8 @@ Token Inspector is a Chrome extension designed for developers and designers to i
 1. Navigate to any webpage you want to analyze.
 2. Click the Token Inspector icon in your Chrome toolbar.
 3. The extension scans the page and displays results by category.
-4. For advanced analysis, open Chrome DevTools and select the "Token Inspector" tab.
+4. For advanced analysis and editing, open Chrome DevTools and select the "Token Inspector" tab.
+5. Click on any CSS value in the DevTools panel to edit it inline.
 
 ## Project Structure
 
@@ -58,7 +61,8 @@ token-inspector/
 │   └── icon-caret.svg         # Caret icon for navigation
 ├── tests/                     # Test files for development
 │   ├── simple-test.html       # Basic test scenarios
-│   └── complex-test.html      # Complex test scenarios
+│   ├── complex-test.html      # Complex test scenarios
+│   └── editing-test.html      # Inline editing test scenarios
 ├── flagged-variables.json     # Custom flagged variables
 └── README.md                  # Project documentation
 ```
@@ -74,6 +78,7 @@ token-inspector/
 
 - `tests/simple-test.html`: Basic test cases for common violations
 - `tests/complex-test.html`: Complex scenarios with nested elements
+- `tests/editing-test.html`: Test scenarios for inline editing functionality
 
 ## Performance
 
@@ -85,6 +90,31 @@ Token Inspector is optimized for speed and efficiency:
 - Minimal memory footprint and non-blocking UI updates
 
 ## Changelog
+
+### Version 1.9
+- **Inline CSS Editing**: Added click-to-edit functionality in DevTools panel
+  - Click any CSS value to edit it inline
+  - Real-time validation of CSS value formats
+  - Apply changes directly to the webpage
+  - Visual feedback for successful/failed changes
+- **Change Management System**: Track and manage applied CSS changes
+  - Built-in change history tracking
+  - Revert functionality for applied changes
+  - Persistent change storage during session
+- **Enhanced Element Finding**: Improved element location algorithms
+  - Multiple fallback methods for element selection
+  - Better handling of dynamic content
+  - Escaped string handling for special characters
+- **UI Improvements**: Enhanced editing interface
+  - Hover states for editable values
+  - Apply/Cancel buttons with proper styling
+  - Status messages for user feedback
+  - Keyboard shortcuts (Enter to apply, Escape to cancel)
+- **CSS Validation**: Comprehensive CSS value validation
+  - Property-specific validation rules
+  - Support for CSS custom properties
+  - Color format validation (hex, rgb, rgba, hsl, named colors)
+  - Unit validation for numeric properties
 
 ### Version 1.8
 - **Project Reorganization**: Restructured codebase into organized folders for better maintainability

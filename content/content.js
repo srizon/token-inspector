@@ -296,8 +296,67 @@
             } else if (request.action === 'clearHighlight') {
                 window.dsLint.clearHighlight();
                 sendResponse({ success: true });
-            }
-        });
+            } else if (request.action === 'applyCssChange') {
+                try {
+                    // Try multiple ways to find the element
+                    let element = document.querySelector(`[data-ds-lint-id="${request.elementId}"]`);
+                    
+                    // If not found by data attribute, try by selector
+                    if (!element && request.selector) {
+                        try {
+                            element = document.querySelector(request.selector);
+                        } catch (e) {
+                            // Invalid selector, continue
+                        }
+                    }
+                    
+                    // If still not found, try to find by path
+                    if (!element && request.path) {
+                        const pathParts = request.path.split(' › ');
+                        if (pathParts.length > 0) {
+                            try {
+                                element = document.querySelector(pathParts[pathParts.length - 1]);
+                            } catch (e) {
+                                // Invalid path selector, continue
+                            }
+                        }
+                    }
+                    
+                    if (element) {
+                        // Apply the CSS change
+                        element.style.setProperty(request.property, request.newValue, 'important');
+                        
+                        // Store the change for potential reversion
+                        if (!window.dsLint.appliedChanges) window.dsLint.appliedChanges = [];
+                        
+                        window.dsLint.appliedChanges.push({
+                            elementId: request.elementId,
+                            property: request.property,
+                            originalValue: request.originalValue || '',
+                            newValue: request.newValue,
+                            timestamp: Date.now()
+                        });
+                        
+                        sendResponse({ success: true, message: 'CSS change applied successfully' });
+                    } else {
+                        sendResponse({ success: false, message: 'Element not found' });
+                    }
+                } catch (error) {
+                    sendResponse({ success: false, message: error.message });
+                }
+                } else if (request.action === 'revertChanges') {
+                    try {
+                        if (window.dsLint.revertChanges) {
+                            window.dsLint.revertChanges();
+                            sendResponse({ success: true, message: 'Changes reverted successfully' });
+                        } else {
+                            sendResponse({ success: false, message: 'No changes to revert' });
+                        }
+                    } catch (error) {
+                        sendResponse({ success: false, message: error.message });
+                    }
+                }
+            });
         
         window.dsLint.isInitialized = true;
         console.log('Token Inspector: Content script initialized successfully');
@@ -308,6 +367,37 @@
             chrome.runtime.sendMessage({ type: 'contentScriptReady' });
         }, 100);
     }
+
+    /**
+     * Revert all applied CSS changes
+     * Restores original values for all applied changes
+     */
+    window.dsLint.revertChanges = () => {
+        if (window.dsLint.appliedChanges) {
+            window.dsLint.appliedChanges.forEach(change => {
+                try {
+                    let element = document.querySelector(`[data-ds-lint-id="${change.elementId}"]`);
+                    
+                    if (!element && change.selector) {
+                        try {
+                            element = document.querySelector(change.selector);
+                        } catch (e) {
+                            // Invalid selector, continue
+                        }
+                    }
+                    
+                    if (element && change.originalValue) {
+                        element.style.setProperty(change.property, change.originalValue, 'important');
+                    }
+                } catch (e) {
+                    console.log('Token Inspector: Failed to revert change:', e);
+                }
+            });
+            
+            // Clear the applied changes array
+            window.dsLint.appliedChanges = [];
+        }
+    };
 
     /**
      * Clear highlight and tooltip from the page

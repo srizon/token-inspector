@@ -296,23 +296,28 @@ document.addEventListener('DOMContentLoaded', function() {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (chrome.devtools && chrome.devtools.inspectedWindow) {
                     // Use DevTools API for highlighting
-                    chrome.devtools.inspectedWindow.eval(`
-                        (function() {
+                    const escapeString = (str) => {
+                        if (!str) return '';
+                        return str.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                    };
+                    
+                    const highlightScript = `
+                        (function(elementId, selector, path) {
                             // Try multiple ways to find the element
-                            let element = document.querySelector('[data-ds-lint-id="${itemData.elementId}"]');
+                            let element = document.querySelector('[data-ds-lint-id="' + elementId + '"]');
                             
                             // If not found by data attribute, try by selector
-                            if (!element && itemData.selector) {
+                            if (!element && selector) {
                                 try {
-                                    element = document.querySelector(itemData.selector);
+                                    element = document.querySelector(selector);
                                 } catch (e) {
                                     // Invalid selector, continue
                                 }
                             }
                             
                             // If still not found, try to find by path
-                            if (!element && itemData.path) {
-                                const pathParts = itemData.path.split(' › ');
+                            if (!element && path) {
+                                const pathParts = path.split(' › ');
                                 if (pathParts.length > 0) {
                                     try {
                                         element = document.querySelector(pathParts[pathParts.length - 1]);
@@ -389,8 +394,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                     }
                                 }, 30000);
                             }
-                        })()
-                    `);
+                        })('${escapeString(itemData.elementId)}', '${escapeString(itemData.selector || '')}', '${escapeString(itemData.path || '')}')
+                    `;
+                    
+                    chrome.devtools.inspectedWindow.eval(highlightScript);
                 } else {
                     // Fall back to content script
                     chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, files: ['content/content.js'] }).then(() => {
