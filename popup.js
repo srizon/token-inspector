@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryTabs = document.getElementById('category-tabs');
     let allResults = {};
     let currentCategory = 'all';
+    let selectedElementId = null; // Track the currently selected element
 
     // Initialize the shared scanner for popup
     const scanner = new TokenInspectorScanner({
@@ -79,8 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryTabs.style.display = 'block';
         resultsContainer.style.display = 'block';
         
-        console.log('Token Inspector: Showing category tabs and results');
-        
         // Update tab counts
         updateTabCounts();
         
@@ -99,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (allCount) allCount.textContent = totalIssues;
         
         // Update individual category counts
-        const categories = ['Colors', 'Typography', 'Spacing', 'Border'];
+        const categories = ['Colors', 'Spacing', 'Border', 'Typography'];
         categories.forEach(category => {
             const countElement = document.getElementById(category.toLowerCase() + '-count');
             if (countElement) {
@@ -111,12 +110,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function setupCategoryTabs() {
         const summaryItems = categoryTabs.querySelectorAll('.summary-item');
-        console.log('Token Inspector: Found', summaryItems.length, 'summary items');
         
         summaryItems.forEach(item => {
-            console.log('Token Inspector: Setting up click handler for', item.dataset.category);
             item.addEventListener('click', () => {
-                console.log('Token Inspector: Clicked on category:', item.dataset.category);
                 // Update active tab
                 summaryItems.forEach(summaryItem => summaryItem.classList.remove('summary-item-highlighted'));
                 item.classList.add('summary-item-highlighted');
@@ -132,10 +128,11 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContainer.innerHTML = '';
 
         if (currentCategory === 'all') {
-            // Display all categories
-            for (const category of Object.keys(allResults)) {
+            // Display all categories in the specified order
+            const categoryOrder = ['Colors', 'Spacing', 'Border', 'Typography'];
+            for (const category of categoryOrder) {
                 const items = allResults[category];
-                if (items.length > 0) {
+                if (items && items.length > 0) {
                     const section = createCategorySection(category, items);
                     resultsContainer.appendChild(section);
                 }
@@ -146,6 +143,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (items.length > 0) {
                 const section = createCategorySection(currentCategory, items);
                 resultsContainer.appendChild(section);
+            }
+        }
+    }
+
+    function updateItemSelection() {
+        // Remove selected class from all items
+        const allItems = document.querySelectorAll('.item');
+        allItems.forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        // Add selected class to the currently selected item
+        if (selectedElementId) {
+            const selectedItem = document.querySelector(`[data-element-id="${selectedElementId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
             }
         }
     }
@@ -172,9 +185,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const item = document.createElement('div');
         item.className = 'item';
         item.dataset.elementId = itemData.elementId;
-
+        
+        // Check if this item should be selected
+        if (selectedElementId === itemData.elementId) {
+            item.classList.add('selected');
+        }
+        
         // Determine icon type and value class based on category
-        console.log('Token Inspector: createIssueItem called with itemData:', itemData, 'category:', category);
         const iconType = getIconType(itemData, category);
         const valueClass = getValueClass(itemData, category);
 
@@ -184,24 +201,37 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the SVG icon content
         const iconSvg = getIconSvg(iconType);
 
-        item.innerHTML = `
-            <div class="icon-container ${iconType}">
-                ${iconSvg}
-            </div>
-            <div class="item-content">
-                <div class="item-title">${itemData.selector}</div>
-                <div class="item-details">
-                    <div class="item-detail">
-                        <span class="detail-label">${itemData.property}:</span>
-                        <span class="detail-value ${valueClass}">${formattedValue}</span>
-                    </div>
-                    <div class="item-element">${itemData.path}</div>
+        // Create the content using createElement instead of innerHTML to preserve event listeners
+        const iconContainer = document.createElement('div');
+        iconContainer.className = `icon-container ${iconType}`;
+        iconContainer.innerHTML = iconSvg;
+        
+        const itemContent = document.createElement('div');
+        itemContent.className = 'item-content';
+        itemContent.innerHTML = `
+            <div class="item-title">${itemData.selector}</div>
+            <div class="item-details">
+                <div class="item-detail">
+                    <span class="detail-label">${itemData.property}:</span>
+                    <span class="detail-value ${valueClass}">${formattedValue}</span>
                 </div>
+                <div class="item-element">${formatPathWithCaret(itemData.path)}</div>
             </div>
         `;
+        
+        item.appendChild(iconContainer);
+        item.appendChild(itemContent);
 
-        item.addEventListener('click', () => {
-            console.log('Token Inspector: Clicked on item with data:', itemData);
+        item.addEventListener('click', (event) => {
+            // Prevent event bubbling
+            event.stopPropagation();
+            
+            // Update selected state
+            selectedElementId = itemData.elementId;
+            
+            // Update visual selection
+            updateItemSelection();
+            
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (chrome.devtools && chrome.devtools.inspectedWindow) {
                     // Use DevTools API for highlighting
@@ -215,24 +245,23 @@ document.addEventListener('DOMContentLoaded', function() {
                                 try {
                                     element = document.querySelector(itemData.selector);
                                 } catch (e) {
-                                    console.log('Token Inspector: Invalid selector:', itemData.selector);
+                                    // Invalid selector, continue
                                 }
                             }
                             
                             // If still not found, try to find by path
                             if (!element && itemData.path) {
-                                const pathParts = itemData.path.split(' > ');
+                                const pathParts = itemData.path.split(' › ');
                                 if (pathParts.length > 0) {
                                     try {
                                         element = document.querySelector(pathParts[pathParts.length - 1]);
                                     } catch (e) {
-                                        console.log('Token Inspector: Invalid path selector:', pathParts[pathParts.length - 1]);
+                                        // Invalid path selector, continue
                                     }
                                 }
                             }
                             
                             if (element) {
-                                console.log('Token Inspector: Found element for highlighting:', element);
                                 
                                 // Clear previous highlight
                                 const prevHighlight = document.querySelector('.ds-lint-highlight');
@@ -299,8 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                         element.classList.remove('ds-lint-highlight');
                                     }
                                 }, 3000);
-                            } else {
-                                console.log('Token Inspector: Could not find element for highlighting. ElementId:', '${itemData.elementId}', 'Selector:', '${itemData.selector}');
                             }
                         })()
                     `);
@@ -322,27 +349,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getIconType(itemData, category) {
-        console.log('Token Inspector: getIconType called with:', {
-            category: category,
-            itemDataCategory: itemData.category,
-            property: itemData.property
-        });
-        
         // Use the passed category parameter first, then fall back to property-based detection
         if (category === 'Colors' || itemData.category === 'Colors' || itemData.property.includes('Color')) {
-            console.log('Token Inspector: Returning icon-color for:', itemData.property);
             return 'icon-color';
         } else if (category === 'Typography' || itemData.category === 'Typography' || itemData.property.includes('Font') || itemData.property.includes('Line')) {
-            console.log('Token Inspector: Returning icon-font for:', itemData.property);
             return 'icon-font';
         } else if (category === 'Spacing' || itemData.category === 'Spacing' || itemData.property.includes('Margin') || itemData.property.includes('Padding')) {
-            console.log('Token Inspector: Returning icon-spacing for:', itemData.property);
             return 'icon-spacing';
         } else if (category === 'Border' || itemData.category === 'Border' || itemData.property.includes('Border')) {
-            console.log('Token Inspector: Returning icon-border for:', itemData.property);
             return 'icon-border';
         }
-        console.log('Token Inspector: Returning default icon-color for:', itemData.property);
         return 'icon-color'; // Default
     }
 
@@ -371,10 +387,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const iconPath = iconMap[iconType] || iconMap['icon-color'];
         const fullUrl = chrome.runtime.getURL(iconPath);
         
-        console.log('Token Inspector: Loading icon for type:', iconType, 'from path:', fullUrl);
-        
         // Return an img element that loads the SVG file with error handling and fallback
-        return `<img src="${fullUrl}" width="24" height="24" style="display: block;" alt="${iconType}" onerror="this.style.display='none'; console.error('Failed to load icon:', '${fullUrl}'); this.nextElementSibling.style.display='block';"><div style="display:none; width:24px; height:24px; background-color: #8D62F1; border-radius: 50%;"></div>`;
+        return `<img src="${fullUrl}" width="24" height="24" style="display: block;" alt="${iconType}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><div style="display:none; width:24px; height:24px; background-color: #8D62F1; border-radius: 50%;"></div>`;
     }
 
     function formatCssValue(value) {
@@ -383,20 +397,30 @@ document.addEventListener('DOMContentLoaded', function() {
         return value;
     }
 
+    function formatPathWithCaret(path) {
+        if (!path) return '';
+        
+        // Simply replace the separator with the caret icon
+        const caretIconUrl = chrome.runtime.getURL('assets/icon-caret.svg');
+        const caretIcon = `<img src="${caretIconUrl}" class="caret-icon" alt=">" onerror="this.style.display='none';">`;
+        
+        return path.replace(/ › /g, caretIcon);
+    }
+
     // Add click event listener for the scan button
     const scanButton = document.querySelector('.header-scan');
     if (scanButton) {
         scanButton.addEventListener('click', () => {
-            console.log('Token Inspector: Scan button clicked, starting rescan...');
             // Reset UI state
             scannerState.style.display = 'flex';
             resultsContainer.style.display = 'none';
             noResultsMessage.style.display = 'none';
             categoryTabs.style.display = 'none';
             
-            // Clear previous results
+            // Clear previous results and selection
             allResults = {};
             currentCategory = 'all';
+            selectedElementId = null;
             
             // Start new scan
             scanner.startScan();

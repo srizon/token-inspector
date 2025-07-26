@@ -423,7 +423,7 @@
             const breadcrumbs = [];
             let current = el;
             let depth = 0;
-            const maxDepth = 10; // Prevent infinite loops
+            const maxDepth = 3; // Limit to 3 levels for readability
             
             while (current && current !== document.body && depth < maxDepth) {
                 breadcrumbs.unshift(getCssSelector(current));
@@ -431,7 +431,7 @@
                 depth++;
             }
             
-            const result = breadcrumbs.join(' > ');
+            const result = breadcrumbs.join(' › ');
             breadcrumbCache.set(el, result);
             return result;
         }

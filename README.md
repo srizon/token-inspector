@@ -13,6 +13,8 @@ A powerful Chrome extension that helps developers and designers inspect and anal
 - **Enhanced Testing**: Comprehensive test files for various scenarios
 - **Modern Design System**: Clean, minimal UI with consistent typography, spacing, and color system
 - **Category Icons**: Visual icons for each design system category for better identification
+- **Improved Breadcrumb Navigation**: Enhanced element path display with better readability
+- **Optimized Category Ordering**: Improved UI layout with logical category arrangement
 
 ## Installation
 
@@ -81,7 +83,11 @@ token-inspector/
 │   ├── icon-color.svg     # Color category icon
 │   ├── icon-text.svg      # Typography category icon
 │   ├── icon-spacing.svg   # Spacing category icon
-│   └── icon-border.svg    # Border category icon
+│   ├── icon-border.svg    # Border category icon
+│   └── icon-caret.svg     # Caret icon for navigation
+├── popup-new/             # New popup interface (experimental)
+│   ├── popup-new.html     # Alternative popup interface
+│   └── styles.css         # Styles for new popup
 ├── simple-test.html       # Basic test scenarios
 ├── complex-test.html      # Complex test scenarios
 ├── flagged-variables.json # Custom flagged variables
@@ -113,8 +119,20 @@ The extension has been significantly optimized for performance with the followin
 - **Early Termination**: Skips irrelevant elements early in processing
 - **Optimized Element Matching**: Uses `element.matches()` for efficient matching
 - **Memory Management**: Proper cache cleanup and management
+- **Breadcrumb Depth Limiting**: Reduced max depth from 10 to 3 levels for better performance
+- **Improved Breadcrumb Formatting**: Uses › separator for better readability
 
 ## Recent Updates
+
+### Version 1.6 Updates:
+- **Enhanced Breadcrumb System**: Improved element path display with better formatting and depth limiting
+- **Optimized Category Ordering**: Reorganized UI layout with logical category arrangement (Colors, Spacing, Border, Typography)
+- **Performance Improvements**: Reduced breadcrumb depth from 10 to 3 levels for better performance
+- **UI Refinements**: Cleaned up console logging and improved code organization
+- **New Caret Icon**: Added icon-caret.svg for enhanced navigation elements
+- **Experimental Popup Interface**: Added popup-new directory with alternative interface design
+- **Code Cleanup**: Removed unnecessary console logs and improved code structure
+- **Better Element Selection**: Enhanced element tracking and selection functionality
 
 ### Version 1.5 Updates:
 - **Complete UI Redesign**: Modernized popup interface with clean, minimal design
@@ -176,6 +194,8 @@ The extension is optimized for performance with the following features:
 - Non-blocking UI updates
 - Pre-computed element-rule mappings
 - Optimized CSS selector processing
+- Limited breadcrumb depth for better performance
+- Improved string formatting and caching
 
 ## License
 
@@ -199,6 +219,9 @@ If you encounter any issues or have questions, please:
 - [ ] Incremental scanning for dynamic content
 - [ ] Dark mode support
 - [ ] Custom theme configuration
+- [ ] Enhanced breadcrumb visualization
+- [ ] Advanced filtering options
+- [ ] Batch scanning capabilities
 
 ---
 

@@ -1,3 +1,8 @@
+/* ==========================================================================
+   Token Inspector Popup Styles
+   ========================================================================== */
+
+/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -5,68 +10,51 @@
 }
 
 body {
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: #eff0f5;
     min-width: 400px;
     height: 600px;
     overflow: hidden;
+    line-height: 1.25;
 }
 
+/* Main Container */
 .popup-ui {
     background-color: #eff0f5;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 0;
-    position: relative;
     width: 100%;
     height: 100%;
 }
 
-/* Header */
+/* ==========================================================================
+   Header Section
+   ========================================================================== */
 .header {
     background-color: #ffffff;
-    box-sizing: border-box;
     display: flex;
-    flex-direction: row;
     gap: 8px;
     align-items: center;
-    justify-content: flex-start;
     padding: 16px;
-    position: relative;
     flex-shrink: 0;
     width: 100%;
 }
 
 .header-icon {
-    position: relative;
-    flex-shrink: 0;
     width: 24px;
     height: 24px;
 }
 
 .header-title {
-    flex-basis: 0;
+    flex: 1;
     text-transform: capitalize;
     font-family: 'SF Pro Display', sans-serif;
     font-weight: 600;
-    flex-grow: 1;
-    line-height: 0;
-    min-height: 1px;
-    min-width: 1px;
-    font-style: normal;
-    position: relative;
-    flex-shrink: 0;
     color: #424569;
     font-size: 18px;
-    text-align: left;
-    line-height: 24px;
 }
 
 .header-scan {
-    position: relative;
-    flex-shrink: 0;
     width: 24px;
     height: 24px;
     cursor: pointer;
@@ -81,7 +69,9 @@ body {
     opacity: 0.5;
 }
 
-/* Scanner State */
+/* ==========================================================================
+   Scanner State
+   ========================================================================== */
 .scanner-state {
     display: flex;
     align-items: center;
@@ -119,24 +109,22 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Summary */
+/* ==========================================================================
+   Summary Section
+   ========================================================================== */
 .summary {
     background-color: #ffffff;
-    box-sizing: border-box;
     display: flex !important;
-    flex-direction: row;
     align-items: stretch;
     justify-content: space-between;
-    padding: 0;
-    position: relative;
     flex-shrink: 0;
     width: 100%;
     border-top: 1px solid #eff0f5;
+    border-bottom: 1px solid #eff0f5;
 }
 
 .summary-item {
     flex: 1;
-    position: relative;
     cursor: pointer;
     transition: all 0.1s ease;
     user-select: none;
@@ -151,7 +139,7 @@ body {
 }
 
 .summary-item-highlighted {
-    border-bottom: 3px solid #424569;
+    background-color: #f8f9fa;
 }
 
 .summary-content {
@@ -159,9 +147,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
     width: 100%;
-    box-sizing: border-box;
     padding: 8px;
     text-align: center;
     white-space: nowrap;
@@ -169,28 +155,24 @@ body {
 
 .summary-value {
     text-transform: capitalize;
-    font-family: 'SF Pro Display', sans-serif;
+    /* font-family: 'SF Pro Display', sans-serif; */
     font-weight: 500;
-    position: relative;
-    flex-shrink: 0;
     color: #424569;
     font-size: 16px;
-    line-height: 1.25;
     white-space: nowrap;
 }
 
 .summary-label {
-    font-family: 'SF Pro Display', sans-serif;
+    /* font-family: 'SF Pro Display', sans-serif; */
     font-weight: 400;
-    position: relative;
-    flex-shrink: 0;
     color: #8085aa;
     font-size: 12px;
-    line-height: 14px;
     white-space: nowrap;
 }
 
-/* Results Container */
+/* ==========================================================================
+   Results Container
+   ========================================================================== */
 .results-container {
     flex: 1;
     overflow-y: auto;
@@ -200,6 +182,7 @@ body {
     width: 100%;
 }
 
+/* Custom Scrollbar Styles */
 .results-container::-webkit-scrollbar {
     width: 3px;
 }
@@ -217,69 +200,54 @@ body {
     background: #a3a3a3;
 }
 
-/* Section */
+/* ==========================================================================
+   Section Components
+   ========================================================================== */
 .section {
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
-    justify-content: flex-start;
     padding: 16px;
-    position: relative;
     flex-shrink: 0;
     width: 100%;
 }
 
 .section-header {
-    box-sizing: border-box;
     display: flex;
-    flex-direction: row;
-    font-family: 'SF Pro Display', sans-serif;
+    /* font-family: 'SF Pro Display', sans-serif; */
     font-weight: 700;
     align-items: flex-start;
-    justify-content: space-between;
-    line-height: 0;
-    font-style: normal;
-    padding: 0;
-    position: relative;
-    flex-shrink: 0;
     color: #424569;
     font-size: 12px;
-    text-align: left;
-    white-space: nowrap;
     text-transform: uppercase;
     width: 100%;
+    align-items: center;
+    gap: 8px;
 }
 
 .section-title {
-    position: relative;
-    flex-shrink: 0;
-    line-height: 16px;
     white-space: nowrap;
 }
 
 .section-count {
-    position: relative;
-    flex-shrink: 0;
-    line-height: 16px;
     white-space: nowrap;
-    padding: 0 8px;
+    padding: 4px 8px;
     background-color: #ffffff;
-    border-radius: 50px;
+    border-radius: 100%;
+    min-width: 20px;
+    min-height: 20px;
 }
 
-/* Item */
+/* ==========================================================================
+   Item Components
+   ========================================================================== */
 .item {
     background-color: #ffffff;
-    position: relative;
     border-radius: 12px;
-    flex-shrink: 0;
     width: 100%;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    box-sizing: border-box;
     padding: 12px;
     gap: 12px;
     cursor: pointer;
@@ -290,15 +258,21 @@ body {
     background-color: #f8f9fa;
 }
 
+.item:active {
+    background-color: #f0f1f2;
+}
+
+.item.selected {
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+}
+
+/* Icon Container Styles */
 .icon-container {
-    box-sizing: border-box;
     display: flex;
-    flex-direction: row;
     gap: 10px;
     align-items: center;
-    justify-content: flex-start;
     padding: 12px;
-    position: relative;
     border-radius: 50px;
     flex-shrink: 0;
 }
@@ -319,107 +293,63 @@ body {
     background-color: rgba(45, 131, 149, 0.1);
 }
 
-.icon-border {
-    background-color: rgba(45, 131, 149, 0.1);
-}
-
+/* Item Content */
 .item-content {
-    flex-basis: 0;
-    box-sizing: border-box;
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    flex-grow: 1;
     align-items: flex-start;
-    justify-content: flex-start;
-    min-height: 1px;
-    min-width: 1px;
-    padding: 0;
-    position: relative;
-    flex-shrink: 0;
 }
 
 .item-title {
-    font-family: 'SF Pro Display', sans-serif;
+    /* font-family: 'SF Pro Display', sans-serif; */
     font-weight: 500;
-    line-height: 0;
-    font-style: normal;
-    position: relative;
-    flex-shrink: 0;
     color: #424569;
     font-size: 14px;
-    text-align: left;
     width: 100%;
-    line-height: 16px;
 }
 
 .item-details {
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    justify-content: flex-start;
-    padding: 0;
-    position: relative;
-    flex-shrink: 0;
     width: 100%;
+    gap: 2px;
 }
 
 .item-detail {
-    box-sizing: border-box;
     display: flex;
-    flex-direction: row;
     gap: 4px;
     align-items: flex-start;
-    justify-content: flex-start;
-    padding: 0;
-    position: relative;
-    flex-shrink: 0;
     width: 100%;
 }
 
 .detail-label {
-    box-sizing: border-box;
     display: flex;
-    flex-direction: row;
     gap: 10px;
     align-items: center;
-    justify-content: center;
     padding: 2px 0;
-    position: relative;
-    flex-shrink: 0;
-    font-family: 'SF Pro Display', sans-serif;
-    font-weight: 400;
-    line-height: 0;
-    font-style: normal;
+    /* font-family: 'SF Pro Display', sans-serif; */
+    font-weight: 500;
     color: #424569;
     font-size: 12px;
-    text-align: left;
     white-space: nowrap;
-    line-height: 14px;
 }
 
 .detail-value {
-    box-sizing: border-box;
     display: flex;
-    flex-direction: row;
     gap: 10px;
     align-items: center;
-    justify-content: center;
     padding: 2px 4px;
-    position: relative;
     border-radius: 4px;
-    flex-shrink: 0;
-    font-family: 'SF Pro Display', sans-serif;
+    /* font-family: 'SF Pro Display', sans-serif; */
     font-weight: 400;
-    line-height: 0;
-    font-style: normal;
     font-size: 12px;
-    text-align: left;
     white-space: nowrap;
-    line-height: 14px;
 }
 
+/* Value Type Styles */
 .color-value {
     background-color: rgba(188, 47, 176, 0.1);
     color: #bc2fb0;
@@ -440,26 +370,24 @@ body {
     color: #2d8395;
 }
 
-.border-value {
-    background-color: rgba(45, 131, 149, 0.1);
-    color: #2d8395;
-}
-
 .item-element {
-    font-family: 'SF Pro Display', sans-serif;
+    /* font-family: 'SF Pro Display', sans-serif; */
     font-weight: 400;
-    line-height: 0;
-    font-style: normal;
-    position: relative;
-    flex-shrink: 0;
     color: #8085aa;
     font-size: 12px;
-    text-align: left;
     width: 100%;
-    line-height: 14px;
 }
 
-/* No Results */
+.item-element .caret-icon {
+    width: 12px;
+    height: 12px;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+/* ==========================================================================
+   No Results State
+   ========================================================================== */
 .no-results {
     display: flex;
     align-items: center;
@@ -495,15 +423,16 @@ body {
 .no-results p {
     font-size: 14px;
     color: #525252;
-    line-height: 1.4;
     margin: 0;
 }
 
-/* Responsive adjustments */
+/* ==========================================================================
+   Responsiveness
+   ========================================================================== */
 @media (max-width: 400px) {
     body {
         width: 100%;
-        max-width: 375px;
+        /* max-width: 375px; */
     }
     
     .popup-ui,
