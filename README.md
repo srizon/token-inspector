@@ -121,6 +121,13 @@ The extension has been significantly optimized for performance with the followin
 
 ## Recent Updates
 
+### Version 1.7 Updates:
+- **Enhanced Color System**: Migrated from hex colors to HSL colors for better consistency and maintainability
+- **Improved Summary Styling**: Added proper spacing, padding, and enhanced transitions for better visual feedback
+- **Better Visual Hierarchy**: Enhanced highlighted state styling with improved contrast and typography
+- **Test File Improvements**: Added proper font family and line height to test files for better consistency
+- **UI Polish**: Refined spacing, borders, and overall visual consistency
+
 ### Version 1.6 Updates:
 - **Enhanced Breadcrumb System**: Improved element path display with better formatting and depth limiting
 - **Optimized Category Ordering**: Reorganized UI layout with logical category arrangement (Colors, Spacing, Border, Typography)

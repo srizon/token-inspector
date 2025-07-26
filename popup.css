@@ -11,7 +11,7 @@
 
 body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #eff0f5;
+    background-color: hsl(240deg 20% 97%);
     min-width: 400px;
     height: 600px;
     overflow: hidden;
@@ -20,7 +20,7 @@ body {
 
 /* Main Container */
 .popup-ui {
-    background-color: #eff0f5;
+    background-color: hsl(240deg 20% 97%);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -115,19 +115,21 @@ body {
 .summary {
     background-color: #ffffff;
     display: flex !important;
+    gap: 2px;
     align-items: stretch;
     justify-content: space-between;
     flex-shrink: 0;
     width: 100%;
-    border-top: 1px solid #eff0f5;
-    border-bottom: 1px solid #eff0f5;
+    padding: 0 16px;
+    /* border-bottom: 1px solid hsl(240deg 20% 97%); */
 }
 
 .summary-item {
     flex: 1;
     cursor: pointer;
-    transition: all 0.1s ease;
+    transition: all 0.3s ease;
     user-select: none;
+    border-radius: 8px 8px 0 0;
 }
 
 .summary-item:hover {
@@ -139,7 +141,13 @@ body {
 }
 
 .summary-item-highlighted {
-    background-color: #f8f9fa;
+    background-color: hsl(240deg 20% 97%);
+    
+}
+
+.summary-item-highlighted .summary-label {
+    color: #424569;
+    font-weight: 500;
 }
 
 .summary-content {
@@ -176,7 +184,7 @@ body {
 .results-container {
     flex: 1;
     overflow-y: auto;
-    background: #eff0f5;
+    background: hsl(240deg 20% 97%);
     scrollbar-width: thin;
     scrollbar-color: #d4d4d4 #fafafa;
     width: 100%;
