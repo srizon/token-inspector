@@ -442,13 +442,30 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Clear all previous highlights
                                 const highlightedElements = document.querySelectorAll('.ds-lint-highlight');
                                 highlightedElements.forEach(el => {
-                                    el.style.outline = '';
-                                    el.style.boxShadow = '';
-                                    el.style.animation = '';
-                                    el.style.zIndex = '';
-                                    el.style.position = '';
+                                    // Remove the highlight overlay
+                                    if (el.highlightOverlay && el.highlightOverlay.parentNode) {
+                                        el.highlightOverlay.parentNode.removeChild(el.highlightOverlay);
+                                    }
+                                    
+                                    // Restore original styles
+                                    if (el.originalPosition !== undefined) {
+                                        el.style.position = el.originalPosition;
+                                    } else {
+                                        el.style.removeProperty('position');
+                                    }
+                                    el.style.removeProperty('z-index');
+                                    
                                     el.classList.remove('ds-lint-highlight');
+                                    el.highlightOverlay = null;
+                                    el.originalPosition = null;
                                 });
+                                
+                                // Remove any existing click event listeners by removing all listeners
+                                // We'll use a more targeted approach by storing the listener reference
+                                if (window.dsLint && window.dsLint.currentClickListener) {
+                                    document.removeEventListener('click', window.dsLint.currentClickListener);
+                                    window.dsLint.currentClickListener = null;
+                                }
                                 
                                 // Remove any existing tooltip
                                 const existingTooltip = document.querySelector('.ds-lint-tooltip');
@@ -468,10 +485,26 @@ document.addEventListener('DOMContentLoaded', function() {
                                     window.dsLint.clearHighlight();
                                 }
                                 
-                                // Add highlight
-                                element.style.outline = '2px solid #FF3B30';
-                                element.style.boxShadow = '0 0 15px rgba(255, 59, 48, 0.6)';
-                                element.style.animation = 'ds-lint-pulse 2s ease-in-out infinite';
+                                // Create a highlight overlay that doesn't affect layout
+                                const highlightOverlay = document.createElement('div');
+                                highlightOverlay.className = 'ds-lint-highlight-overlay';
+                                
+                                // Get the computed border-radius to match it
+                                const computedStyle = window.getComputedStyle(element);
+                                const borderRadius = computedStyle.borderRadius;
+                                
+                                highlightOverlay.style.cssText = \`
+                                    position: absolute;
+                                    top: -2px;
+                                    left: -2px;
+                                    right: -2px;
+                                    bottom: -2px;
+                                    border: 2px solid #FF3B30;
+                                    border-radius: \${borderRadius !== '0px' ? \`calc(\${borderRadius} + 2px)\` : '2px'};
+                                    pointer-events: none;
+                                    z-index: 9999;
+                                    animation: ds-lint-pulse 2s ease-in-out infinite;
+                                \`;
                                 
                                 // Add pulse animation keyframes if not already present
                                 if (!document.querySelector('#ds-lint-pulse-styles')) {
@@ -480,24 +513,92 @@ document.addEventListener('DOMContentLoaded', function() {
                                     style.textContent = \`
                                         @keyframes ds-lint-pulse {
                                             0% {
-                                                outline-width: 2px;
+                                                border-width: 2px;
                                                 box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
                                             }
                                             50% {
-                                                outline-width: 4px;
+                                                border-width: 4px;
                                                 box-shadow: 0 0 25px rgba(255, 59, 48, 0.8);
                                             }
                                             100% {
-                                                outline-width: 2px;
+                                                border-width: 2px;
                                                 box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
                                             }
                                         }
                                     \`;
                                     document.head.appendChild(style);
                                 }
+                                
+                                // Ensure the element has position relative for the overlay to work
+                                const originalPosition = element.style.position;
+                                const computedPosition = window.getComputedStyle(element).position;
+                                
+                                if (computedPosition === 'static') {
+                                    element.style.position = 'relative';
+                                }
                                 element.style.zIndex = '9999';
-                                element.style.position = 'relative';
+                                
+                                // Add the overlay to the element
+                                element.appendChild(highlightOverlay);
                                 element.classList.add('ds-lint-highlight');
+                                
+                                // Store references for cleanup
+                                element.highlightOverlay = highlightOverlay;
+                                element.originalPosition = originalPosition;
+                                
+                                // Add click event listener to clear highlight when clicking outside
+                                const clearHighlightOnClickOutside = (e) => {
+                                    // Check if the clicked element is within a highlighted element or tooltip
+                                    const isWithinHighlighted = e.target.closest('.ds-lint-highlight') || 
+                                                               e.target.closest('.ds-lint-highlight-overlay') ||
+                                                               e.target.closest('.ds-lint-tooltip') ||
+                                                               e.target.classList.contains('ds-lint-highlight') ||
+                                                               e.target.classList.contains('ds-lint-highlight-overlay') ||
+                                                               e.target.classList.contains('ds-lint-tooltip');
+                                    
+                                    if (!isWithinHighlighted) {
+                                        // Remove the highlight overlay
+                                        if (element.highlightOverlay && element.highlightOverlay.parentNode) {
+                                            element.highlightOverlay.parentNode.removeChild(element.highlightOverlay);
+                                        }
+                                        
+                                        // Restore original styles
+                                        if (element.originalPosition !== undefined) {
+                                            element.style.position = element.originalPosition;
+                                        } else {
+                                            element.style.removeProperty('position');
+                                        }
+                                        element.style.removeProperty('z-index');
+                                        
+                                        element.classList.remove('ds-lint-highlight');
+                                        element.highlightOverlay = null;
+                                        element.originalPosition = null;
+                                        
+                                        // Remove tooltip
+                                        const existingTooltip = document.querySelector('.ds-lint-tooltip');
+                                        if (existingTooltip) {
+                                            existingTooltip.remove();
+                                        }
+                                        
+                                        // Clean up tooltip event listeners
+                                        if (window.dsLint && window.dsLint.currentTooltip) {
+                                            window.removeEventListener('resize', window.dsLint.currentTooltip.repositionHandler);
+                                            window.removeEventListener('scroll', window.dsLint.currentTooltip.repositionHandler);
+                                            window.dsLint.currentTooltip = null;
+                                        }
+                                        
+                                        // Remove this event listener
+                                        document.removeEventListener('click', clearHighlightOnClickOutside);
+                                        window.dsLint.currentClickListener = null;
+                                    }
+                                };
+                                
+                                // Store the click event listener reference for cleanup
+                                window.dsLint = window.dsLint || {};
+                                window.dsLint.currentClickListener = clearHighlightOnClickOutside;
+                                
+                                // Add the click event listener
+                                document.addEventListener('click', clearHighlightOnClickOutside);
                                 
                                 // Scroll to element
                                 element.scrollIntoView({ 
@@ -509,12 +610,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Remove highlight after 30 seconds
                                 setTimeout(() => {
                                     if (element.classList.contains('ds-lint-highlight')) {
-                                        element.style.outline = '';
-                                        element.style.boxShadow = '';
-                                        element.style.animation = '';
-                                        element.style.zIndex = '';
-                                        element.style.position = '';
+                                        // Remove the highlight overlay
+                                        if (element.highlightOverlay && element.highlightOverlay.parentNode) {
+                                            element.highlightOverlay.parentNode.removeChild(element.highlightOverlay);
+                                        }
+                                        
+                                        // Restore original styles
+                                        if (element.originalPosition !== undefined) {
+                                            element.style.position = element.originalPosition;
+                                        } else {
+                                            element.style.removeProperty('position');
+                                        }
+                                        element.style.removeProperty('z-index');
+                                        
                                         element.classList.remove('ds-lint-highlight');
+                                        element.highlightOverlay = null;
+                                        element.originalPosition = null;
+                                        
+                                        // Remove click event listener
+                                        if (window.dsLint && window.dsLint.currentClickListener) {
+                                            document.removeEventListener('click', window.dsLint.currentClickListener);
+                                            window.dsLint.currentClickListener = null;
+                                        }
                                     }
                                 }, 30000);
                             }
@@ -853,13 +970,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Clear any highlighted elements
                     const highlightedElements = document.querySelectorAll('.ds-lint-highlight');
                     highlightedElements.forEach(element => {
-                        element.style.outline = '';
-                        element.style.boxShadow = '';
-                        element.style.animation = '';
-                        element.style.zIndex = '';
-                        element.style.position = '';
+                        // Remove the highlight overlay
+                        if (element.highlightOverlay && element.highlightOverlay.parentNode) {
+                            element.highlightOverlay.parentNode.removeChild(element.highlightOverlay);
+                        }
+                        
+                        // Restore original styles
+                        if (element.originalPosition !== undefined) {
+                            element.style.position = element.originalPosition;
+                        } else {
+                            element.style.removeProperty('position');
+                        }
+                        element.style.removeProperty('z-index');
+                        
                         element.classList.remove('ds-lint-highlight');
+                        element.highlightOverlay = null;
+                        element.originalPosition = null;
                     });
+                    
+                    // Remove click event listener
+                    if (window.dsLint && window.dsLint.currentClickListener) {
+                        document.removeEventListener('click', window.dsLint.currentClickListener);
+                        window.dsLint.currentClickListener = null;
+                    }
                     
                     // Remove tooltip
                     const existingTooltip = document.querySelector('.ds-lint-tooltip');

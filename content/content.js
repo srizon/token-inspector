@@ -31,11 +31,29 @@
         // Clear previous highlight and tooltip
         if (window.dsLint.highlightedElement) {
             try {
-                window.dsLint.highlightedElement.style.outline = '';
-                window.dsLint.highlightedElement.style.boxShadow = '';
-                window.dsLint.highlightedElement.style.animation = '';
+                // Remove the highlight overlay
+                if (window.dsLint.highlightOverlay && window.dsLint.highlightOverlay.parentNode) {
+                    window.dsLint.highlightOverlay.parentNode.removeChild(window.dsLint.highlightOverlay);
+                }
+                
+                // Restore original styles
+                if (window.dsLint.originalPosition !== undefined) {
+                    window.dsLint.highlightedElement.style.position = window.dsLint.originalPosition;
+                } else {
+                    // If we didn't have an original position, remove the inline style
+                    window.dsLint.highlightedElement.style.removeProperty('position');
+                }
+                if (window.dsLint.originalZIndex !== undefined) {
+                    window.dsLint.highlightedElement.style.zIndex = window.dsLint.originalZIndex;
+                } else {
+                    window.dsLint.highlightedElement.style.removeProperty('z-index');
+                }
                 window.dsLint.highlightedElement.classList.remove('ds-lint-highlight');
             } catch (e) { /* Element might have been removed */ }
+            window.dsLint.highlightedElement = null;
+            window.dsLint.highlightOverlay = null;
+            window.dsLint.originalPosition = null;
+            window.dsLint.originalZIndex = null;
         }
         
         // Remove existing tooltip
@@ -90,10 +108,26 @@
                 inline: 'center'
             });
             
-            // Add a persistent highlight effect with pulse animation
-            targetElement.style.outline = '2px solid #FF3B30';
-            targetElement.style.boxShadow = '0 0 15px rgba(255, 59, 48, 0.6)';
-            targetElement.style.animation = 'ds-lint-pulse 2s ease-in-out infinite';
+            // Create a highlight overlay that doesn't affect layout
+            const highlightOverlay = document.createElement('div');
+            highlightOverlay.className = 'ds-lint-highlight-overlay';
+            
+            // Get the computed border-radius to match it
+            const computedStyle = window.getComputedStyle(targetElement);
+            const borderRadius = computedStyle.borderRadius;
+            
+            highlightOverlay.style.cssText = `
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                border: 2px solid #FF3B30;
+                border-radius: ${borderRadius !== '0px' ? `calc(${borderRadius} + 2px)` : '2px'};
+                pointer-events: none;
+                z-index: 9999;
+                animation: ds-lint-pulse 2s ease-in-out infinite;
+            `;
             
             // Add pulse animation keyframes if not already present
             if (!document.querySelector('#ds-lint-pulse-styles')) {
@@ -102,25 +136,42 @@
                 style.textContent = `
                     @keyframes ds-lint-pulse {
                         0% {
-                            outline-width: 2px;
+                            border-width: 2px;
                             box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
                         }
                         50% {
-                            outline-width: 4px;
+                            border-width: 4px;
                             box-shadow: 0 0 25px rgba(255, 59, 48, 0.8);
                         }
                         100% {
-                            outline-width: 2px;
+                            border-width: 2px;
                             box-shadow: 0 0 15px rgba(255, 59, 48, 0.6);
                         }
                     }
                 `;
                 document.head.appendChild(style);
             }
+            
+            // Ensure the target element has position relative for the overlay to work
+            const originalPosition = targetElement.style.position;
+            const originalZIndex = targetElement.style.zIndex;
+            const computedPosition = window.getComputedStyle(targetElement).position;
+            
+            // Only set position relative if it's not already positioned
+            if (computedPosition === 'static') {
+                targetElement.style.position = 'relative';
+            }
             targetElement.style.zIndex = '9999';
-            targetElement.style.position = 'relative';
+            
+            // Add the overlay to the element
+            targetElement.appendChild(highlightOverlay);
             targetElement.classList.add('ds-lint-highlight');
+            
+            // Store references for cleanup
             window.dsLint.highlightedElement = targetElement;
+            window.dsLint.highlightOverlay = highlightOverlay;
+            window.dsLint.originalPosition = originalPosition;
+            window.dsLint.originalZIndex = originalZIndex;
 
             // Show tooltip with issue details
             if (issueData) {
@@ -218,13 +269,28 @@
             // Remove highlight and tooltip after 30 seconds
             setTimeout(() => {
                 if (targetElement.classList.contains('ds-lint-highlight')) {
-                    targetElement.style.outline = '';
-                    targetElement.style.boxShadow = '';
-                    targetElement.style.animation = '';
-                    targetElement.style.zIndex = '';
-                    targetElement.style.position = '';
+                    // Remove the highlight overlay
+                    if (window.dsLint.highlightOverlay && window.dsLint.highlightOverlay.parentNode) {
+                        window.dsLint.highlightOverlay.parentNode.removeChild(window.dsLint.highlightOverlay);
+                    }
+                    
+                    // Restore original styles
+                    if (window.dsLint.originalPosition !== undefined) {
+                        targetElement.style.position = window.dsLint.originalPosition;
+                    } else {
+                        // If we didn't have an original position, remove the inline style
+                        targetElement.style.removeProperty('position');
+                    }
+                    if (window.dsLint.originalZIndex !== undefined) {
+                        targetElement.style.zIndex = window.dsLint.originalZIndex;
+                    } else {
+                        targetElement.style.removeProperty('z-index');
+                    }
                     targetElement.classList.remove('ds-lint-highlight');
                     window.dsLint.highlightedElement = null;
+                    window.dsLint.highlightOverlay = null;
+                    window.dsLint.originalPosition = null;
+                    window.dsLint.originalZIndex = null;
                     
                     // Remove tooltip
                     const existingTooltip = document.querySelector('.ds-lint-tooltip');
@@ -406,14 +472,29 @@
     window.dsLint.clearHighlight = () => {
         if (window.dsLint.highlightedElement) {
             try {
-                window.dsLint.highlightedElement.style.outline = '';
-                window.dsLint.highlightedElement.style.boxShadow = '';
-                window.dsLint.highlightedElement.style.animation = '';
-                window.dsLint.highlightedElement.style.zIndex = '';
-                window.dsLint.highlightedElement.style.position = '';
+                // Remove the highlight overlay
+                if (window.dsLint.highlightOverlay && window.dsLint.highlightOverlay.parentNode) {
+                    window.dsLint.highlightOverlay.parentNode.removeChild(window.dsLint.highlightOverlay);
+                }
+                
+                // Restore original styles
+                if (window.dsLint.originalPosition !== undefined) {
+                    window.dsLint.highlightedElement.style.position = window.dsLint.originalPosition;
+                } else {
+                    // If we didn't have an original position, remove the inline style
+                    window.dsLint.highlightedElement.style.removeProperty('position');
+                }
+                if (window.dsLint.originalZIndex !== undefined) {
+                    window.dsLint.highlightedElement.style.zIndex = window.dsLint.originalZIndex;
+                } else {
+                    window.dsLint.highlightedElement.style.removeProperty('z-index');
+                }
                 window.dsLint.highlightedElement.classList.remove('ds-lint-highlight');
             } catch (e) { /* Element might have been removed */ }
             window.dsLint.highlightedElement = null;
+            window.dsLint.highlightOverlay = null;
+            window.dsLint.originalPosition = null;
+            window.dsLint.originalZIndex = null;
         }
         
         // Remove tooltip
@@ -432,7 +513,15 @@
 
     // Clear highlight when user clicks elsewhere or page reloads
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.ds-lint-highlight')) {
+        // Check if the clicked element is within a highlighted element or tooltip
+        const isWithinHighlighted = e.target.closest('.ds-lint-highlight') || 
+                                   e.target.closest('.ds-lint-highlight-overlay') ||
+                                   e.target.closest('.ds-lint-tooltip') ||
+                                   e.target.classList.contains('ds-lint-highlight') ||
+                                   e.target.classList.contains('ds-lint-highlight-overlay') ||
+                                   e.target.classList.contains('ds-lint-tooltip');
+        
+        if (!isWithinHighlighted) {
             window.dsLint.clearHighlight();
         }
     });
@@ -455,14 +544,29 @@
         document.querySelectorAll('[data-ds-lint-id]').forEach(el => el.removeAttribute('data-ds-lint-id'));
         if (window.dsLint.highlightedElement) {
             try {
-                window.dsLint.highlightedElement.style.outline = '';
-                window.dsLint.highlightedElement.style.boxShadow = '';
-                window.dsLint.highlightedElement.style.animation = '';
-                window.dsLint.highlightedElement.style.zIndex = '';
-                window.dsLint.highlightedElement.style.position = '';
+                // Remove the highlight overlay
+                if (window.dsLint.highlightOverlay && window.dsLint.highlightOverlay.parentNode) {
+                    window.dsLint.highlightOverlay.parentNode.removeChild(window.dsLint.highlightOverlay);
+                }
+                
+                // Restore original styles
+                if (window.dsLint.originalPosition !== undefined) {
+                    window.dsLint.highlightedElement.style.position = window.dsLint.originalPosition;
+                } else {
+                    // If we didn't have an original position, remove the inline style
+                    window.dsLint.highlightedElement.style.removeProperty('position');
+                }
+                if (window.dsLint.originalZIndex !== undefined) {
+                    window.dsLint.highlightedElement.style.zIndex = window.dsLint.originalZIndex;
+                } else {
+                    window.dsLint.highlightedElement.style.removeProperty('z-index');
+                }
                 window.dsLint.highlightedElement.classList.remove('ds-lint-highlight');
             } catch (e) {}
             window.dsLint.highlightedElement = null;
+            window.dsLint.highlightOverlay = null;
+            window.dsLint.originalPosition = null;
+            window.dsLint.originalZIndex = null;
         }
         window.dsLint.elementMap.clear();
 

@@ -95,9 +95,16 @@ Token Inspector is optimized for speed and efficiency:
 
 ## Changelog
 
+### Version 1.10
+- **Fixed Layout Issues**: Replaced outline-based highlighting with overlay approach to prevent page layout disruption
+- **Improved Click Outside Detection**: Enhanced click event handling to properly clear highlights when clicking outside highlighted areas
+- **Consistent Highlighting**: Unified highlighting behavior across popup and DevTools panel
+- **Better Event Management**: Proper cleanup of event listeners to prevent memory leaks and conflicts
+- **Enhanced Border Radius Support**: Overlays automatically adjust to match target element's border radius
+- **Smart Style Restoration**: Only modifies element positioning when necessary and properly restores original styles
+
 ### Version 1.9
 - **Inline CSS Editing**: Click any CSS value in the DevTools panel to edit it inline, with real-time validation and direct application to the webpage. Visual feedback is provided for changes.
-- **Change Management**: Tracks applied CSS changes with history, revert, and session persistence.
 - **Improved Element Finding**: More robust element selection with multiple fallback methods and better handling of dynamic content and special characters.
 - **UI Enhancements**: Minimal editing interface with hover states, styled Apply/Cancel buttons, status messages, and keyboard shortcuts (Enter/Escape).
 - **CSS Validation**: Property-specific validation, support for custom properties, and comprehensive color/unit checks.
