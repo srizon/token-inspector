@@ -49,7 +49,8 @@ token-inspector/
 │   └── shared-scanner.js
 ├── panel/                     # DevTools panel UI and logic
 │   ├── panel.html
-│   └── panel.js
+│   ├── panel.js
+│   └── panel.css
 ├── devtools/                  # DevTools integration
 │   ├── devtools.html
 │   └── devtools.js
@@ -59,10 +60,14 @@ token-inspector/
 │   ├── icon-spacing.svg       # Spacing category icon
 │   ├── icon-border.svg        # Border category icon
 │   └── icon-caret.svg         # Caret icon for navigation
+├── icons/                     # Extension icons
+│   ├── icon16.png
+│   ├── icon32.png
+│   ├── icon48.png
+│   └── icon128.png
 ├── tests/                     # Test files for development
 │   ├── simple-test.html       # Basic test scenarios
-│   ├── complex-test.html      # Complex test scenarios
-│   └── editing-test.html      # Inline editing test scenarios
+│   └── complex-test.html      # Complex test scenarios
 ├── flagged-variables.json     # Custom flagged variables
 └── README.md                  # Project documentation
 ```
@@ -77,8 +82,7 @@ token-inspector/
 ## Test Files
 
 - `tests/simple-test.html`: Basic test cases for common violations
-- `tests/complex-test.html`: Complex scenarios with nested elements
-- `tests/editing-test.html`: Test scenarios for inline editing functionality
+- `tests/complex-test.html`: Complex scenarios with nested elements and inline editing functionality
 
 ## Performance
 
@@ -92,29 +96,11 @@ Token Inspector is optimized for speed and efficiency:
 ## Changelog
 
 ### Version 1.9
-- **Inline CSS Editing**: Added click-to-edit functionality in DevTools panel
-  - Click any CSS value to edit it inline
-  - Real-time validation of CSS value formats
-  - Apply changes directly to the webpage
-  - Visual feedback for successful/failed changes
-- **Change Management System**: Track and manage applied CSS changes
-  - Built-in change history tracking
-  - Revert functionality for applied changes
-  - Persistent change storage during session
-- **Enhanced Element Finding**: Improved element location algorithms
-  - Multiple fallback methods for element selection
-  - Better handling of dynamic content
-  - Escaped string handling for special characters
-- **UI Improvements**: Enhanced editing interface
-  - Hover states for editable values
-  - Apply/Cancel buttons with proper styling
-  - Status messages for user feedback
-  - Keyboard shortcuts (Enter to apply, Escape to cancel)
-- **CSS Validation**: Comprehensive CSS value validation
-  - Property-specific validation rules
-  - Support for CSS custom properties
-  - Color format validation (hex, rgb, rgba, hsl, named colors)
-  - Unit validation for numeric properties
+- **Inline CSS Editing**: Click any CSS value in the DevTools panel to edit it inline, with real-time validation and direct application to the webpage. Visual feedback is provided for changes.
+- **Change Management**: Tracks applied CSS changes with history, revert, and session persistence.
+- **Improved Element Finding**: More robust element selection with multiple fallback methods and better handling of dynamic content and special characters.
+- **UI Enhancements**: Minimal editing interface with hover states, styled Apply/Cancel buttons, status messages, and keyboard shortcuts (Enter/Escape).
+- **CSS Validation**: Property-specific validation, support for custom properties, and comprehensive color/unit checks.
 
 ### Version 1.8
 - **Project Reorganization**: Restructured codebase into organized folders for better maintainability

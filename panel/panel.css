@@ -1,0 +1,533 @@
+/* DevTools Panel Specific Styles */
+/* Simplified Code Editor Design - mimics VS Code's DevTools appearance */
+body {
+    width: auto !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #d4d4d4;
+    background: #1e1e1e;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main application container */
+.app-container {
+    height: 100vh !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Results container with scrollable content */
+.results-container {
+    height: calc(100vh - 120px) !important;
+    background: #252526;
+    border-top: 1px solid #3c3c3c;
+    overflow-y: auto;
+}
+
+/* Simplified header for DevTools context */
+.header {
+    padding: 8px 16px;
+    background: #2d2d30;
+    border-bottom: 1px solid #3c3c3c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 48px;
+    box-sizing: border-box;
+}
+
+/* Header content layout */
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Header buttons container */
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Logo styling */
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: #007acc;
+}
+
+.logo img {
+    border-radius: 6px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.logo svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Panel title styling */
+h1 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: #cccccc;
+}
+
+/* Scan button styling for DevTools context */
+.scan-button {
+    background: #0e639c;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background-color 0.1s ease;
+}
+
+.scan-button:hover {
+    background: #1177bb;
+}
+
+.scan-button:disabled {
+    background: #3c3c3c;
+    color: #6a6a6a;
+    cursor: not-allowed;
+}
+
+/* Clear button styling for DevTools context */
+.clear-button {
+    background: #424242;
+    color: #cccccc;
+    border: 1px solid #3c3c3c;
+    padding: 6px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.1s ease;
+}
+
+.clear-button:hover {
+    background: #4f4f4f;
+    color: #ffffff;
+    border-color: #5a5a5a;
+}
+
+.clear-button:active {
+    background: #3c3c3c;
+}
+
+/* Simplified category tabs for DevTools */
+.category-tabs {
+    background: #2d2d30;
+    border-bottom: 1px solid #3c3c3c;
+    padding: 0;
+}
+
+.tabs-container {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: #cccccc;
+    transition: all 0.1s ease;
+    white-space: nowrap;
+    border-right: 1px solid #3c3c3c;
+    position: relative;
+}
+
+.tab-button:hover {
+    background: #3c3c3c;
+    color: #ffffff;
+}
+
+.tab-button.active {
+    background: #1e1e1e;
+    color: #ffffff;
+    border-bottom: 2px solid #007acc;
+}
+
+.tab-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tab-count {
+    background: #0e639c;
+    color: #ffffff;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 16px;
+    text-align: center;
+}
+
+.tab-button:not(.active) .tab-count {
+    background: #3c3c3c;
+    color: #cccccc;
+}
+
+/* Simplified scanner state */
+.scanner-state {
+    background: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 0;
+    margin: 16px;
+}
+
+.scanner-content {
+    text-align: center;
+    max-width: 300px;
+    padding: 32px 20px;
+}
+
+.scanner-content p {
+    font-size: 13px;
+    font-weight: 400;
+    color: #cccccc;
+    margin: 12px 0 0 0;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #3c3c3c;
+    border-top: 2px solid #007acc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Clean results styling */
+.results-container {
+    padding: 0;
+    background: #252526;
+}
+
+.category-section {
+    margin: 0;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.category-section:last-child {
+    border-bottom: none;
+}
+
+.category-header {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #2d2d30;
+    border-bottom: 1px solid #3c3c3c;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+.category-header:hover {
+    background: #3c3c3c;
+}
+
+.category-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #cccccc;
+}
+
+.category-count {
+    background: #0e639c;
+    color: #ffffff;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 16px;
+    text-align: center;
+}
+
+.results-list {
+    padding: 0;
+    margin: 0;
+}
+
+/* Clean multi-line issue cards */
+.issue-card {
+    margin: 0;
+    padding: 8px 16px;
+    background: #252526;
+    border: none;
+    border-bottom: 1px solid #3c3c3c;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 48px;
+    line-height: 1.4;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+}
+
+.issue-card:hover {
+    background: #2a2d2e;
+}
+
+.issue-card:active {
+    background: #3c3c3c;
+}
+
+/* CSS-like syntax highlighting */
+.issue-selector {
+    color: #dcdcaa;
+    font-weight: 400;
+    margin-right: 8px;
+}
+
+.issue-brace {
+    color: #dcdcaa;
+    margin-right: 4px;
+}
+
+.issue-property {
+    color: #9cdcfe;
+    font-weight: 400;
+    margin-right: 4px;
+    white-space: pre;
+}
+
+.issue-colon {
+    color: #d4d4d4;
+    margin-right: 2px;
+}
+
+.issue-value {
+    color: #ce9178;
+    font-weight: 400;
+    margin-right: 2px;
+}
+
+.issue-semicolon {
+    color: #d4d4d4;
+    margin-right: 2px;
+}
+
+/* Editable value styles */
+.issue-value-editable {
+    color: #ce9178;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 1px;
+    border-radius: 2px;
+    transition: background-color 0.1s ease;
+    display: inline-block;
+}
+
+.issue-value-editable:hover {
+    background: #3c3c3c;
+}
+
+.issue-value-editable.editing {
+    background: #2d2d30;
+    border: 1px solid #007acc;
+    outline: none;
+    color: #ffffff;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: inherit;
+    /* min-width: 80px; */
+}
+
+.edit-controls {
+    display: none;
+    margin-top: 8px;
+    gap: 8px;
+    align-items: center;
+}
+
+.edit-controls.visible {
+    display: flex;
+}
+
+.apply-button {
+    background: #0e639c;
+    color: #ffffff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: background-color 0.1s ease;
+}
+
+.apply-button:hover {
+    background: #1177bb;
+}
+
+.apply-button:disabled {
+    background: #3c3c3c;
+    color: #6a6a6a;
+    cursor: not-allowed;
+}
+
+.cancel-button {
+    background: #424242;
+    color: #cccccc;
+    border: 1px solid #3c3c3c;
+    padding: 4px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.1s ease;
+}
+
+.cancel-button:hover {
+    background: #4f4f4f;
+    color: #ffffff;
+}
+
+.edit-status {
+    font-size: 11px;
+    color: #6a9955;
+    font-weight: 500;
+}
+
+.edit-status.error {
+    color: #f44747;
+}
+
+/* Simplified no results message */
+.no-results {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: #252526;
+    flex: 1;
+}
+
+.no-results-content {
+    text-align: center;
+    max-width: 300px;
+}
+
+.success-icon {
+    margin-bottom: 16px;
+    color: #6a9955;
+}
+
+.success-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.no-results h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #cccccc;
+    margin: 0 0 8px 0;
+}
+
+.no-results p {
+    font-size: 12px;
+    color: #6a9955;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* VS Code inspired scrollbar */
+.results-container::-webkit-scrollbar {
+    width: 14px;
+}
+
+.results-container::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+    background: #424242;
+    border-radius: 0;
+    border: 3px solid #1e1e1e;
+}
+
+.results-container::-webkit-scrollbar-thumb:hover {
+    background: #4f4f4f;
+}
+
+.results-container::-webkit-scrollbar-corner {
+    background: #1e1e1e;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header {
+        padding: 6px 12px;
+    }
+    
+    .issue-card {
+        padding: 4px 12px;
+    }
+    
+    .category-header {
+        padding: 6px 12px;
+    }
+}
+
+/* VS Code color scheme variables for consistency */
+:root {
+    --vscode-bg: #1e1e1e;
+    --vscode-bg-secondary: #252526;
+    --vscode-bg-tertiary: #2d2d30;
+    --vscode-border: #3c3c3c;
+    --vscode-text: #d4d4d4;
+    --vscode-text-secondary: #cccccc;
+    --vscode-accent: #007acc;
+    --vscode-error: #f44747;
+    --vscode-success: #6a9955;
+    --vscode-warning: #cca700;
+    --vscode-info: #9cdcfe;
+} 

@@ -628,13 +628,50 @@
                 // First pass: collect all rules
                 stylesheets.forEach((sheet, sheetIndex) => {
                     try {
+                        // Skip extension stylesheets to avoid false positives
+                        if (sheet.href && sheet.href.includes('chrome-extension://')) {
+                            return;
+                        }
+                        
+                        // Skip stylesheets that belong to extension context
+                        if (sheet.ownerNode && sheet.ownerNode.closest && 
+                            sheet.ownerNode.closest('[data-extension="token-inspector"]')) {
+                            return;
+                        }
+                        
                         const sheetRules = Array.from(sheet.cssRules || sheet.rules || []);
                         sheetRules.forEach((rule, ruleIndex) => {
                             if (rule.style) {
+                                // Try to get the original CSS text from the stylesheet
+                                let originalCssText = '';
+                                try {
+                                    if (sheet.href) {
+                                        // For external stylesheets, we can't easily get the original text
+                                        originalCssText = rule.style.cssText;
+                                    } else {
+                                        // For inline stylesheets, try to get the original text
+                                        const sheetText = sheet.ownerNode ? sheet.ownerNode.textContent : '';
+                                        if (sheetText) {
+                                            // Find the rule in the original text
+                                            const ruleStart = sheetText.indexOf(rule.selectorText);
+                                            if (ruleStart !== -1) {
+                                                const ruleEnd = sheetText.indexOf('}', ruleStart);
+                                                if (ruleEnd !== -1) {
+                                                    originalCssText = sheetText.substring(ruleStart, ruleEnd + 1);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    // Fallback to processed CSS text
+                                    originalCssText = rule.style.cssText;
+                                }
+                                
                                 rules.push({
                                     rule: rule,
                                     selector: rule.selectorText,
                                     style: rule.style,
+                                    originalCssText: originalCssText,
                                     sheetIndex: sheetIndex,
                                     ruleIndex: ruleIndex
                                 });
@@ -675,16 +712,46 @@
              * @param {CSSStyleDeclaration} style - Computed styles for the element
              * @param {Object} results - Results object to populate
              */
-            function processElementStyles(element, style, results) {
+            function processElementStyles(element, style, results, originalCssText = '', processedCombinations = new Set()) {
                 Object.keys(propertiesToCheck).forEach(property => {
-                    const value = style.getPropertyValue(property).trim(); // Trim whitespace
+                    // Get the original CSS value from the rule's CSS text
+                    let value = '';
+                    
+                    // Only get values from CSS rules that explicitly define the property
+                    if (originalCssText) {
+                        // Use more specific regex to prevent partial matches (e.g., "color" matching "background-color")
+                        const propertyRegex = new RegExp(`(?:^|[\\s;{}])${property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;]+)`, 'i');
+                        const match = originalCssText.match(propertyRegex);
+                        
+                        if (match) {
+                            value = match[1].trim();
+                        } else {
+                            // Property not in original CSS, skip it completely
+                            return;
+                        }
+                    } else if (style.cssText) {
+                        // Fallback to processed CSS text
+                        const propertyRegex = new RegExp(`(?:^|[\\s;{}])${property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;]+)`, 'i');
+                        const match = style.cssText.match(propertyRegex);
+                        if (match) {
+                            value = match[1].trim();
+                        } else {
+                            // Property not in CSS rule, skip it completely
+                            return;
+                        }
+                    } else {
+                        // No CSS text available, skip this property
+                        return;
+                    }
                     
                     // Skip empty or inherited values
                     if (!value || value.startsWith('inherit') || value.startsWith('initial') || value === 'transparent' || value === 'currentColor') {
                         return;
                     }
+                    
 
-                    console.log(`Token Inspector: Processing element <${element.tagName.toLowerCase()}>, property: ${property}, value: ${value}`);
+
+
 
                     const propertyInfo = propertiesToCheck[property];
                     let shouldFlag = false;
@@ -704,24 +771,12 @@
                         }
                     } else {
                         // This is a potential hardcoded value
-                        let originalValue = value;
-                        if (property.includes('color')) {
-                            if (value.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)) {
-                                const rgbMatch = value.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-                                const r = parseInt(rgbMatch[1]);
-                                const g = parseInt(rgbMatch[2]);
-                                const b = parseInt(rgbMatch[3]);
-                                const toHex = (n) => { const hex = n.toString(16); return hex.length === 1 ? '0' + hex : hex; };
-                                originalValue = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-                            }
-                        }
-
                         // Check for hardcoded values based on property type
                         if (property.includes('color') && (value.match(/^#[0-9a-fA-F]{3,6}$/) || value.match(/^rgb/) || value.match(/^hsl/))) {
                             if (value !== 'rgba(0, 0, 0, 0)' && value !== 'rgb(0, 0, 0)' && value !== 'rgb(255, 255, 255)' && value !== 'rgba(255, 255, 255, 1)' && value !== '#000000' && value !== '#ffffff' && value !== '#000' && value !== '#fff') {
                                 shouldFlag = true;
                                 category = 'Colors';
-                                flaggedValue = originalValue;
+                                flaggedValue = value; // Use the original value format (hex, rgb, or hsl)
                             }
                         } else if (property.includes('margin') || property.includes('padding')) {
                             if (value.match(/^\d+(\.\d+)?px$/) && value !== '0px') {
@@ -743,7 +798,51 @@
 
                     // If a value was flagged (either variable or hardcoded), add it to the results.
                     if (shouldFlag) {
-                        console.log(`Token Inspector: Flagging element for ${category}: `, { selector: getCssSelector(element), property, value: flaggedValue });
+                        // Create a unique key for this element-property-value combination to avoid duplicates
+                        const elementKey = `${getCssSelector(element)}-${property}-${flaggedValue}`;
+                        
+                        // Skip if we've already processed this exact combination
+                        if (processedCombinations.has(elementKey)) {
+                            return;
+                        }
+                        
+                        // Group related properties to avoid showing duplicates
+                        if (property.includes('border') && property.includes('color')) {
+                            // Group all border color properties together
+                            const borderColorKey = `${getCssSelector(element)}-border-color-${flaggedValue}`;
+                            if (processedCombinations.has(borderColorKey)) {
+                                return;
+                            }
+                            // Mark all border color variants as processed
+                            processedCombinations.add(`${getCssSelector(element)}-border-color-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-top-color-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-right-color-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-bottom-color-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-left-color-${flaggedValue}`);
+                            
+                            // Use the generic 'border-color' property name for display
+                            property = 'border-color';
+                        } else if (property.includes('border-') && property.includes('-radius')) {
+                            // Group all border radius properties together
+                            const borderRadiusKey = `${getCssSelector(element)}-border-radius-${flaggedValue}`;
+                            if (processedCombinations.has(borderRadiusKey)) {
+                                return;
+                            }
+                            // Mark all border radius variants as processed
+                            processedCombinations.add(`${getCssSelector(element)}-border-radius-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-top-left-radius-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-top-right-radius-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-bottom-left-radius-${flaggedValue}`);
+                            processedCombinations.add(`${getCssSelector(element)}-border-bottom-right-radius-${flaggedValue}`);
+                            
+                            // Use the generic 'border-radius' property name for display
+                            property = 'border-radius';
+                        } else {
+                            // Mark this combination as processed
+                            processedCombinations.add(elementKey);
+                        }
+                        
+                        console.log(`Token Inspector: Flagged ${category} violation - ${getCssSelector(element)}: ${property}: ${flaggedValue}`);
                         
                         const elementId = `ds-lint-${++elementCounter}`;
                         element.setAttribute('data-ds-lint-id', elementId);
@@ -761,7 +860,7 @@
                         window.dsLint.results[category].push({
                             elementId: elementId,
                             selector: getCssSelector(element),
-                            property: propertyInfo.name,
+                            property: property, // Use the potentially modified property name
                             value: flaggedValue,
                             path: getBreadcrumbs(element)
                         });
@@ -780,6 +879,46 @@
             }
 
             /**
+             * Check if an element belongs to the extension (popup, panel, etc.)
+             * 
+             * @param {Element} element - DOM element to check
+             * @returns {boolean} True if element belongs to extension
+             */
+            function isExtensionElement(element) {
+                // Check if element is inside extension iframe or popup
+                if (element.closest('iframe[src*="chrome-extension://"]')) {
+                    return true;
+                }
+                
+                // Check for extension-specific class names and IDs
+                const extensionSelectors = [
+                    '.popup-ui', '.devtools-panel', '.token-inspector',
+                    '[data-extension="token-inspector"]',
+                    '.ds-lint-highlight', '.ds-lint-tooltip'
+                ];
+                
+                for (const selector of extensionSelectors) {
+                    if (element.matches(selector) || element.closest(selector)) {
+                        return true;
+                    }
+                }
+                
+                // Check if element is in extension context
+                try {
+                    const context = element.ownerDocument.defaultView;
+                    if (context && context.location && 
+                        (context.location.protocol === 'chrome-extension:' || 
+                         context.location.href.includes('chrome-extension://'))) {
+                        return true;
+                    }
+                } catch (e) {
+                    // Cross-origin access, assume it's not extension
+                }
+                
+                return false;
+            }
+
+            /**
              * Find hardcoded values in the page
              * Main scanning function that processes all elements and their styles
              * 
@@ -787,6 +926,9 @@
              */
             function findHardcodedValues() {
                 window.dsLint.results = {};
+                
+                // Track processed element-property combinations to avoid duplicates
+                const processedCombinations = new Set();
                 
                 // Get all CSS rules and element-rule mapping once
                 const { rules, elementRuleMap } = processCssRules();
@@ -799,9 +941,14 @@
                         return;
                     }
                     
+                    // Skip extension elements to avoid false positives
+                    if (isExtensionElement(element)) {
+                        return;
+                    }
+                    
                     // Process CSS rules for this element (already matched)
                     elementRules.forEach(ruleData => {
-                        processElementStyles(element, ruleData.style, window.dsLint.results);
+                        processElementStyles(element, ruleData.style, window.dsLint.results, ruleData.originalCssText, processedCombinations);
                     });
                 });
                 
