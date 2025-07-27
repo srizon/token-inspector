@@ -572,31 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /**
-     * Clear highlight from the page
-     * Removes all visual indicators and cleans up event listeners
-     */
-    function clearHighlight() {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            if (tabs.length > 0) {
-                chrome.tabs.sendMessage(tabs[0].id, { action: 'clearHighlight' });
-            }
-        });
-        
-        // Clear selected state in the popup
-        selectedElementId = null;
-        updateItemSelection();
-    }
 
-    /**
-     * Add click event listener for the clear highlight button
-     */
-    const clearHighlightButton = document.getElementById('clear-highlight-button');
-    if (clearHighlightButton) {
-        clearHighlightButton.addEventListener('click', () => {
-            clearHighlight();
-        });
-    }
 
     // Start scanning automatically when popup opens
     scanner.startScan();
