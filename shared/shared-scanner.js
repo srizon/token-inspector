@@ -12,7 +12,7 @@
  * - Flagged CSS variables that should be replaced
  * 
  * @class TokenInspectorScanner
- * @version 1.3
+ * @version 2.0
  */
 class TokenInspectorScanner {
     /**

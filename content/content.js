@@ -12,7 +12,7 @@
  * - Provides element highlighting and tooltip functionality
  * - Maintains element mapping for accurate highlighting
  * 
- * @version 1.3
+ * @version 2.0
  */
 (function() {
     // Use a namespace on the window object to avoid collisions and manage state.

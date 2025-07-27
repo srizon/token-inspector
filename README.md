@@ -95,7 +95,7 @@ Token Inspector is optimized for speed and efficiency:
 
 ## Changelog
 
-### Version 1.10
+### Version 2.0 
 - **Fixed Layout Issues**: Replaced outline-based highlighting with overlay approach to prevent page layout disruption
 - **Improved Click Outside Detection**: Enhanced click event handling to properly clear highlights when clicking outside highlighted areas
 - **Consistent Highlighting**: Unified highlighting behavior across popup and DevTools panel

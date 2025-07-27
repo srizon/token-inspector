@@ -10,7 +10,7 @@
  * - Handles panel show/hide events
  * - Provides error handling for restricted pages
  * 
- * @version 1.3
+ * @version 2.0
  */
 
 /**
