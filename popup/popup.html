@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Token Inspector</title>
     <link rel="stylesheet" href="popup.css">
+    <script src="../lottie/lottie.min.js"></script>
 </head>
 <body>
     <!-- Main popup container -->
@@ -31,7 +32,7 @@
         <!-- Loading state during scan -->
         <div id="scanner-state" class="scanner-state">
             <div class="scanner-content">
-                <div class="spinner"></div>
+                <div id="lottie-container" class="lottie-container"></div>
                 <p>Scanning for hardcoded components...</p>
             </div>
         </div>

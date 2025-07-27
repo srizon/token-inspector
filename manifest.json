@@ -31,7 +31,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["flagged-variables.json", "assets/*"],
+      "resources": ["flagged-variables.json", "assets/*", "lottie/*"],
       "matches": ["<all_urls>"]
     }
   ]

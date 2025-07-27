@@ -108,14 +108,13 @@ body {
     margin: 12px 0 0 0;
 }
 
-.spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #e5e5e5;
-    border-top: 2px solid #0a0a0a;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+.lottie-container {
+    width: 160px;
+    height: 160px;
     margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @keyframes spin {

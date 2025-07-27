@@ -13,6 +13,7 @@ Token Inspector is a Chrome extension designed for developers and designers to i
 - **Shared Scanning Logic**: Consistent analysis across popup and DevTools via a shared module.
 - **Performance Optimized**: Efficient scanning and caching for minimal page impact.
 - **Test Files Included**: Comprehensive test files for various scenarios.
+- **Lottie Animations**: Smooth, engaging loading animations using Lottie for better user experience.
 
 ## Installation
 
@@ -65,6 +66,9 @@ token-inspector/
 │   ├── icon32.png
 │   ├── icon48.png
 │   └── icon128.png
+├── lottie/                    # Lottie animation assets
+│   ├── lottie.min.js          # Lottie library
+│   └── lottie_scanning.json   # Scanning animation
 ├── tests/                     # Test files for development
 │   ├── simple-test.html       # Basic test scenarios
 │   └── complex-test.html      # Complex test scenarios
@@ -94,6 +98,14 @@ Token Inspector is optimized for speed and efficiency:
 - Minimal memory footprint and non-blocking UI updates
 
 ## Changelog
+
+### Version 2.2
+- **Lottie Animation Integration**: Replaced static spinner with smooth Lottie animations for enhanced user experience during scanning
+- **Updated Extension Icons**: Refreshed all extension icons (16px, 32px, 48px, 128px) for better visual consistency
+- **Enhanced Loading States**: Improved loading animation with fallback to CSS spinner if Lottie library fails to load
+- **Manifest Updates**: Added lottie assets to web_accessible_resources for proper extension functionality
+- **Better Error Handling**: Graceful fallback mechanisms for animation loading failures
+- **Performance Optimizations**: Efficient Lottie animation management with proper cleanup and memory management
 
 ### Version 2.1
 - **Fixed !important Detection**: Scanner now properly flags CSS values with `!important` declarations by stripping the `!important` keyword before analysis

@@ -14,16 +14,115 @@
  * @version 2.0
  */
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Popup DOM loaded');
+    console.log('Lottie library status:', typeof lottie);
+    
     // UI Elements
     const scannerState = document.getElementById('scanner-state');
     const resultsContainer = document.getElementById('results-container');
     const noResultsMessage = document.getElementById('no-results-message');
     const categoryTabs = document.getElementById('category-tabs');
+    const lottieContainer = document.getElementById('lottie-container');
     
     // State Management
     let allResults = {};
     let currentCategory = 'all';
     let selectedElementId = null; // Track the currently selected element
+    let lottieAnimation = null; // Lottie animation instance
+
+    /**
+     * Initialize Lottie animation
+     * Loads and plays the scanning animation
+     */
+    function initLottieAnimation() {
+        // Check if Lottie library is available
+        if (typeof lottie === 'undefined') {
+            console.error('Lottie library not loaded');
+            lottieContainer.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #e5e5e5; border-top: 2px solid #0a0a0a; border-radius: 50%; animation: spin 1s linear infinite;"></div>';
+            return;
+        }
+        
+        if (lottieAnimation) {
+            lottieAnimation.destroy();
+        }
+        
+        const lottieUrl = chrome.runtime.getURL('lottie/lottie_scanning.json');
+        console.log('Loading Lottie animation from:', lottieUrl);
+        
+        // Test if the file exists by making a fetch request
+        fetch(lottieUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Lottie JSON file loaded successfully');
+                
+                lottieAnimation = lottie.loadAnimation({
+                    container: lottieContainer,
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: lottieUrl
+                });
+                
+                lottieAnimation.addEventListener('data_ready', () => {
+                    console.log('Lottie animation loaded successfully');
+                    // Check if we should start the animation immediately
+                    if (window.shouldStartLottieWhenReady) {
+                        console.log('Starting Lottie animation now that it\'s ready');
+                        lottieAnimation.play();
+                        window.shouldStartLottieWhenReady = false;
+                    }
+                }, { once: true }); // Use once: true to prevent multiple listeners
+                
+                lottieAnimation.addEventListener('error', (error) => {
+                    console.error('Lottie animation error:', error);
+                    // Fallback to a simple loading indicator if Lottie fails
+                    lottieContainer.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #e5e5e5; border-top: 2px solid #0a0a0a; border-radius: 50%; animation: spin 1s linear infinite;"></div>';
+                });
+            })
+            .catch(error => {
+                console.error('Failed to load Lottie JSON file:', error);
+                // Fallback to a simple loading indicator
+                lottieContainer.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #e5e5e5; border-top: 2px solid #0a0a0a; border-radius: 50%; animation: spin 1s linear infinite;"></div>';
+            });
+    }
+
+    /**
+     * Start Lottie animation
+     */
+    function startLottieAnimation() {
+        console.log('Starting Lottie animation, animation instance:', lottieAnimation);
+        
+        if (lottieAnimation) {
+            // Check if animation is already loaded
+            if (lottieAnimation.isLoaded) {
+                lottieAnimation.play();
+            } else {
+                // Animation is created but not yet loaded, wait for it
+                lottieAnimation.addEventListener('data_ready', () => {
+                    console.log('Lottie animation ready, playing now');
+                    lottieAnimation.play();
+                }, { once: true }); // Use once: true to prevent multiple listeners
+            }
+        } else {
+            console.log('Lottie animation not initialized yet, will start when ready');
+            // Store a flag to start animation when it's ready
+            window.shouldStartLottieWhenReady = true;
+        }
+    }
+
+    /**
+     * Stop Lottie animation
+     */
+    function stopLottieAnimation() {
+        if (lottieAnimation) {
+            lottieAnimation.stop();
+        }
+    }
 
     /**
      * Initialize the shared scanner for popup
@@ -36,9 +135,11 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsContainer.style.display = 'none';
             noResultsMessage.style.display = 'none';
             categoryTabs.style.display = 'none';
+            startLottieAnimation();
         },
         onScanComplete: () => {
             scannerState.style.display = 'none';
+            stopLottieAnimation();
         },
         onResultsReady: (results) => {
             displayResults(results);
@@ -46,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         onError: (error) => {
             console.error('Token Inspector Popup: Error:', error);
             scannerState.style.display = 'none';
+            stopLottieAnimation();
         }
     });
 
@@ -567,13 +669,36 @@ document.addEventListener('DOMContentLoaded', function() {
             currentCategory = 'all';
             selectedElementId = null;
             
-            // Start new scan
+            // Start Lottie animation and new scan
+            startLottieAnimation();
             scanner.startScan();
         });
     }
 
 
 
+    // Wait for Lottie library to be available
+    let lottieWaitAttempts = 0;
+    const maxLottieWaitAttempts = 20; // 1 second max wait
+    
+    function waitForLottie() {
+        if (typeof lottie !== 'undefined') {
+            console.log('Lottie library is available, initializing animation...');
+            initLottieAnimation();
+        } else if (lottieWaitAttempts < maxLottieWaitAttempts) {
+            lottieWaitAttempts++;
+            console.log(`Lottie library not yet available, retrying... (${lottieWaitAttempts}/${maxLottieWaitAttempts})`);
+            setTimeout(waitForLottie, 50);
+        } else {
+            console.error('Lottie library failed to load after maximum attempts');
+            // Fallback to spinner
+            lottieContainer.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #e5e5e5; border-top: 2px solid #0a0a0a; border-radius: 50%; animation: spin 1s linear infinite;"></div>';
+        }
+    }
+    
+    // Start waiting for Lottie library
+    waitForLottie();
+    
     // Start scanning automatically when popup opens
     scanner.startScan();
 });
