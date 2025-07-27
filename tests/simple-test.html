@@ -28,6 +28,19 @@
             color: var(--text-dark-on-inverse);
         }
         
+        /* Test elements with !important - should be flagged for hardcoded values */
+        .test-important-1 {
+            color: red !important; /* Should be flagged as hardcoded color */
+        }
+        
+        .test-important-2 {
+            font-size: 24px !important; /* Should be flagged as hardcoded typography */
+        }
+        
+        .test-important-3 {
+            margin: 10px !important; /* Should be flagged as hardcoded spacing */
+        }
+        
         .test-element-2 {
             color: var(--text-dark-on-inverse, #333); /* With fallback */
         }
@@ -88,6 +101,19 @@
     
     <div class="test-element-2">
         This uses: color: var(--text-dark-on-inverse, #333) - should NOT be flagged
+    </div>
+    
+    <!-- Test elements with !important declarations - should be flagged -->
+    <div class="test-important-1">
+        This uses: color: red !important - SHOULD be flagged as hardcoded color
+    </div>
+    
+    <div class="test-important-2">
+        This uses: font-size: 24px !important - SHOULD be flagged as hardcoded typography
+    </div>
+    
+    <div class="test-important-3">
+        This uses: margin: 10px !important - SHOULD be flagged as hardcoded spacing
     </div>
     
     <div class="test-element-3">

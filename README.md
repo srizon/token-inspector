@@ -95,6 +95,12 @@ Token Inspector is optimized for speed and efficiency:
 
 ## Changelog
 
+### Version 2.1
+- **Fixed !important Detection**: Scanner now properly flags CSS values with `!important` declarations by stripping the `!important` keyword before analysis
+- **Enhanced Value Extraction**: Improved CSS value parsing to focus on actual values regardless of importance declarations
+- **Added Test Cases**: New test elements in `simple-test.html` to verify `!important` handling for colors, typography, and spacing
+- **Maintained Backward Compatibility**: All existing functionality preserved while adding support for `!important` declarations
+
 ### Version 2.0 
 - **Fixed Layout Issues**: Replaced outline-based highlighting with overlay approach to prevent page layout disruption
 - **Improved Click Outside Detection**: Enhanced click event handling to properly clear highlights when clicking outside highlighted areas

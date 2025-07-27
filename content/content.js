@@ -853,9 +853,11 @@
                         return;
                     }
                     
-
-
-
+                    // Remove !important from the value to focus on the actual CSS value
+                    // This ensures we flag unacceptable values regardless of !important declaration
+                    if (value.includes('!important')) {
+                        value = value.replace(/\s*!important\s*$/i, '').trim();
+                    }
 
                     const propertyInfo = propertiesToCheck[property];
                     let shouldFlag = false;
