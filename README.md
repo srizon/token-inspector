@@ -8,7 +8,7 @@ Token Inspector is a Chrome extension designed for developers and designers to i
 
 - **Detects Hard-Coded CSS Values**: Instantly scans webpages for hard-coded colors, typography, spacing, and border values that should use design tokens.
 - **Organized by Category**: Groups violations by design system category (Color, Typography, Spacing, Border) for clear review.
-- **Minimal, Accessible UI**: Clean, easy-to-use interface with tabbed navigation and detailed violation information.
+- **Minimal UI**: Clean, easy-to-use interface with tabbed navigation and detailed violation information.
 - **Chrome DevTools Panel**: Integrates directly into DevTools for advanced inspection, element highlighting, and inline CSS editing.
 - **Consistent Scanning Logic**: Uses a shared scanning engine for both popup and DevTools, ensuring reliable results everywhere.
 - **Performance Focused**: Fast, efficient scanning with minimal impact on page performance.
@@ -77,7 +77,7 @@ token-inspector/
 
 ## Categories Analyzed
 
-- **Colors**: Hard-coded color values (hex, rgb, rgba)
+- **Colors**: Hard-coded color values (hex, rgb, rgba, hsl) as well as user defined flagged-variables.
 - **Typography**: Font sizes, font weights, line heights
 - **Spacing**: Margins, paddings, gaps
 - **Corner Radius**: Border radius values
