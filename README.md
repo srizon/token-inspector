@@ -4,17 +4,15 @@
 
 Token Inspector is a Chrome extension designed for developers and designers to inspect and analyze design tokens and hard-coded CSS values on any webpage. It helps ensure design system consistency by identifying violations in real time, with a focus on performance and usability.
 
-## Features
+## Key Features
 
-- **Real-time Analysis**: Scans webpages for hard-coded CSS values that should use design tokens.
-- **Categorized Results**: Organizes findings by design system categories (Colors, Typography, Spacing, Border).
-- **Minimal, Modern UI**: Clean, accessible interface with tabbed navigation and detailed violation info.
-- **DevTools Integration**: Adds a dedicated panel in Chrome DevTools for advanced analysis and element highlighting.
-- **Inline CSS Editing**: Click-to-edit functionality for quick CSS value changes directly in the DevTools panel.
-- **Shared Scanning Logic**: Consistent analysis across popup and DevTools via a shared module.
-- **Performance Optimized**: Efficient scanning and caching for minimal page impact.
-- **Test Files Included**: Comprehensive test files for various scenarios.
-- **Lottie Animations**: Smooth, engaging loading animations using Lottie for better user experience.
+- **Detects Hard-Coded CSS Values**: Instantly scans webpages for hard-coded colors, typography, spacing, and border values that should use design tokens.
+- **Organized by Category**: Groups violations by design system category (Color, Typography, Spacing, Border) for clear review.
+- **Minimal, Accessible UI**: Clean, easy-to-use interface with tabbed navigation and detailed violation information.
+- **Chrome DevTools Panel**: Integrates directly into DevTools for advanced inspection, element highlighting, and inline CSS editing.
+- **Consistent Scanning Logic**: Uses a shared scanning engine for both popup and DevTools, ensuring reliable results everywhere.
+- **Performance Focused**: Fast, efficient scanning with minimal impact on page performance.
+- **Comprehensive Test Files**: Includes a variety of test pages to verify detection accuracy and edge cases.
 
 ## Installation
 
@@ -82,7 +80,7 @@ token-inspector/
 - **Colors**: Hard-coded color values (hex, rgb, rgba)
 - **Typography**: Font sizes, font weights, line heights
 - **Spacing**: Margins, paddings, gaps
-- **Border**: Border radius values
+- **Corner Radius**: Border radius values
 
 ## Test Files
 
@@ -91,105 +89,67 @@ token-inspector/
 
 ## Performance
 
-Token Inspector is optimized for speed and efficiency:
-- Caching of CSS rules and selectors
-- Early termination for irrelevant elements
-- Optimized DOM traversal and element matching
-- Limited breadcrumb depth for better performance
-- Minimal memory footprint and non-blocking UI updates
+Token Inspector is built for speed and efficiency:
+
+- Caches CSS rules and selectors to reduce redundant work
+- Skips irrelevant elements early for faster scanning
+- Uses optimized logic to identify violations quickly
+- Maintains a low memory footprint and non-blocking UI updates
 
 ## Changelog
 
 ### Version 2.3
-- **Fixed CSS Value Extraction Bug**: Fixed regex pattern in CSS value extraction to prevent capturing closing braces `}` in property values
-- **Improved Value Parsing**: Updated regex from `[^;]+` to `[^;}]+` to stop at either semicolons or closing braces
-- **Enhanced Accuracy**: Eliminates false positives where values appeared with trailing `}` characters
+- **CSS Value Extraction**: Fixed regex to prevent capturing closing braces `}` in property values, improving accuracy and eliminating false positives.
 
 ### Version 2.2
-- **Lottie Animation Integration**: Replaced static spinner with smooth Lottie animations for enhanced user experience during scanning
-- **Updated Extension Icons**: Refreshed all extension icons (16px, 32px, 48px, 128px) for better visual consistency
-- **Enhanced Loading States**: Improved loading animation with fallback to CSS spinner if Lottie library fails to load
-- **Manifest Updates**: Added lottie assets to web_accessible_resources for proper extension functionality
-- **Better Error Handling**: Graceful fallback mechanisms for animation loading failures
-- **Performance Optimizations**: Efficient Lottie animation management with proper cleanup and memory management
+- **Lottie Animation**: Integrated smooth Lottie animations for scanning, replacing the static spinner.
+- **Extension Icons**: Refreshed all icon sizes for visual consistency.
+- **Loading & Error Handling**: Improved loading animation with CSS spinner fallback and graceful error handling for animation loading.
+- **Manifest & Performance**: Added Lottie assets to web_accessible_resources and optimized animation management for efficiency.
 
 ### Version 2.1
-- **Fixed !important Detection**: Scanner now properly flags CSS values with `!important` declarations by stripping the `!important` keyword before analysis
-- **Enhanced Value Extraction**: Improved CSS value parsing to focus on actual values regardless of importance declarations
-- **Added Test Cases**: New test elements in `simple-test.html` to verify `!important` handling for colors, typography, and spacing
-- **Maintained Backward Compatibility**: All existing functionality preserved while adding support for `!important` declarations
+- **!important Detection**: Scanner now properly flags and handles CSS values with `!important` by stripping the keyword before analysis.
+- **Test Coverage**: Added test cases in `simple-test.html` for `!important` handling.
+- **Backward Compatibility**: All existing functionality preserved.
 
 ### Version 2.0 
-- **Fixed Layout Issues**: Replaced outline-based highlighting with overlay approach to prevent page layout disruption
-- **Improved Click Outside Detection**: Enhanced click event handling to properly clear highlights when clicking outside highlighted areas
-- **Consistent Highlighting**: Unified highlighting behavior across popup and DevTools panel
-- **Better Event Management**: Proper cleanup of event listeners to prevent memory leaks and conflicts
-- **Enhanced Border Radius Support**: Overlays automatically adjust to match target element's border radius
-- **Smart Style Restoration**: Only modifies element positioning when necessary and properly restores original styles
+- **Highlighting**: Switched to overlay-based highlighting to prevent layout disruption and unified behavior across popup and DevTools.
+- **Event Handling**: Improved click outside detection and event listener cleanup to avoid memory leaks.
+- **Border Radius & Style Restoration**: Overlays match target border radius and restore styles only when necessary.
 
 ### Version 1.9
-- **Inline CSS Editing**: Click any CSS value in the DevTools panel to edit it inline, with real-time validation and direct application to the webpage. Visual feedback is provided for changes.
-- **Improved Element Finding**: More robust element selection with multiple fallback methods and better handling of dynamic content and special characters.
-- **UI Enhancements**: Minimal editing interface with hover states, styled Apply/Cancel buttons, status messages, and keyboard shortcuts (Enter/Escape).
-- **CSS Validation**: Property-specific validation, support for custom properties, and comprehensive color/unit checks.
+- **Inline CSS Editing**: Edit CSS values inline in DevTools with real-time validation, direct application, and visual feedback.
+- **Element Selection**: More robust element finding with multiple fallback methods.
+- **UI & Validation**: Minimal editing interface, keyboard shortcuts, and property-specific validation.
 
 ### Version 1.8
-- **Project Reorganization**: Restructured codebase into organized folders for better maintainability
-  - Moved popup files to `popup/` directory
-  - Moved content script to `content/` directory
-  - Moved DevTools files to `devtools/` and `panel/` directories
-  - Moved shared logic to `shared/` directory
-  - Moved test files to `tests/` directory
-- Updated gitignore with additional patterns for browser extensions and development
-- Improved project structure documentation
+- **Project Reorganization**: Restructured codebase into organized folders (`popup/`, `content/`, `devtools/`, `panel/`, `shared/`, `tests/`).
+- **Documentation**: Updated gitignore and project structure docs.
 
 ### Version 1.7
-- Improved summary styling, spacing, and transitions
-- Enhanced highlighted state styling and visual hierarchy
-- Test file improvements for consistency
-- UI polish: refined spacing, borders, and overall visual consistency
+- **UI & Styling**: Improved summary, highlighted states, spacing, and overall visual consistency.
+- **Test Files**: Enhanced for consistency.
 
 ### Version 1.6
-- Enhanced breadcrumb system with better formatting and depth limiting
-- Optimized category ordering in the UI
-- Performance improvements for faster scanning
-- UI refinements and code cleanup
-- New caret icon for navigation
-- Improved element selection and tracking
+- **Breadcrumbs & Navigation**: Enhanced breadcrumb formatting, category ordering, and added caret icon.
+- **Performance & UI**: Faster scanning, UI refinements, and code cleanup.
 
 ### Version 1.5
-- Complete UI redesign with a minimal, modern look
-- Added category-specific SVG icons
-- Improved layout, typography, and spacing
-- Better accessibility and keyboard navigation
-- Modular CSS structure
-- Performance optimizations and asset management
+- **UI Redesign**: Minimal, modern look with category-specific SVG icons, modular CSS, and better accessibility.
+- **Performance**: Optimizations and improved asset management.
 
 ### Version 1.4
-- Improved visual hierarchy and summary view
-- Added category-specific icons
-- Enhanced accessibility and keyboard navigation
-- Better mobile responsiveness
-- Modular CSS and improved test file organization
+- **Visual Hierarchy & Accessibility**: Improved summary view, icons, keyboard navigation, and mobile responsiveness.
+- **Test Organization**: Modular CSS and better test file structure.
 
 ### Version 1.3
-- Enhanced element highlighting with pulse animations
-- Improved user experience and visual feedback
-- Optimized styling for highlighting
-- Code cleanup and streamlined project structure
+- **Highlighting & Feedback**: Pulse animations for highlighting, improved user experience, and code cleanup.
 
 ### Version 1.2
-- Support for flagged CSS custom properties
-- Enhanced tooltips for element highlighting
-- Added comprehensive test files for flagged variables
-- Improved error handling and tooltip display
+- **Flagged Variables & Tooltips**: Support for flagged CSS custom properties, enhanced tooltips, comprehensive test files, and better error handling.
 
 ### Version 1.1
-- Code cleanup and removal of unnecessary files
-- Streamlined project structure
-- Updated documentation
-- Maintained performance optimizations
-- Improved error handling and UI
+- **Cleanup & Documentation**: Code cleanup, streamlined structure, updated docs, and improved error handling and UI.
 
 ---
 
