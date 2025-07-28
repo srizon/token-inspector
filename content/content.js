@@ -824,7 +824,7 @@
                     // Only get values from CSS rules that explicitly define the property
                     if (originalCssText) {
                         // Use more specific regex to prevent partial matches (e.g., "color" matching "background-color")
-                        const propertyRegex = new RegExp(`(?:^|[\\s;{}])${property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;]+)`, 'i');
+                        const propertyRegex = new RegExp(`(?:^|[\\s;{}])${property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;}]+)`, 'i');
                         const match = originalCssText.match(propertyRegex);
                         
                         if (match) {
@@ -835,7 +835,7 @@
                         }
                     } else if (style.cssText) {
                         // Fallback to processed CSS text
-                        const propertyRegex = new RegExp(`(?:^|[\\s;{}])${property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;]+)`, 'i');
+                        const propertyRegex = new RegExp(`(?:^|[\\s;{}])${property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;}]+)`, 'i');
                         const match = style.cssText.match(propertyRegex);
                         if (match) {
                             value = match[1].trim();

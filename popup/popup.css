@@ -134,6 +134,7 @@ body {
     flex-shrink: 0;
     width: 100%;
     padding: 0 16px;
+    border-bottom: 2px solid #f7f7f8;
 }
 
 .summary-item {

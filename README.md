@@ -99,6 +99,11 @@ Token Inspector is optimized for speed and efficiency:
 
 ## Changelog
 
+### Version 2.3
+- **Fixed CSS Value Extraction Bug**: Fixed regex pattern in CSS value extraction to prevent capturing closing braces `}` in property values
+- **Improved Value Parsing**: Updated regex from `[^;]+` to `[^;}]+` to stop at either semicolons or closing braces
+- **Enhanced Accuracy**: Eliminates false positives where values appeared with trailing `}` characters
+
 ### Version 2.2
 - **Lottie Animation Integration**: Replaced static spinner with smooth Lottie animations for enhanced user experience during scanning
 - **Updated Extension Icons**: Refreshed all extension icons (16px, 32px, 48px, 128px) for better visual consistency
