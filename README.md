@@ -1,3 +1,5 @@
+![Token Inspector Cover Photo](https://raw.githubusercontent.com/srizon/token-inspector/refs/heads/master/assets/project-cover.jpg)
+
 # Token Inspector
 
 Token Inspector is a Chrome extension designed for developers and designers to inspect and analyze design tokens and hard-coded CSS values on any webpage. It helps ensure design system consistency by identifying violations in real time, with a focus on performance and usability.
@@ -9,7 +11,6 @@ Token Inspector is a Chrome extension designed for developers and designers to i
 - **Minimal, Modern UI**: Clean, accessible interface with tabbed navigation and detailed violation info.
 - **DevTools Integration**: Adds a dedicated panel in Chrome DevTools for advanced analysis and element highlighting.
 - **Inline CSS Editing**: Click-to-edit functionality for quick CSS value changes directly in the DevTools panel.
-- **Change Management**: Track and revert applied CSS changes with built-in change history.
 - **Shared Scanning Logic**: Consistent analysis across popup and DevTools via a shared module.
 - **Performance Optimized**: Efficient scanning and caching for minimal page impact.
 - **Test Files Included**: Comprehensive test files for various scenarios.
