@@ -63,7 +63,7 @@ body {
 .header-buttons {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
 }
 
 
@@ -80,6 +80,21 @@ body {
 }
 
 .header-scan:active {
+    opacity: 0.5;
+}
+
+.header-settings {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.header-settings:hover {
+    opacity: 0.7;
+}
+
+.header-settings:active {
     opacity: 0.5;
 }
 
@@ -319,6 +334,8 @@ body {
     flex-direction: column;
     gap: 4px;
     align-items: flex-start;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .item-title {
@@ -327,6 +344,9 @@ body {
     color: #424569;
     font-size: 14px;
     width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .item-details {
@@ -335,6 +355,8 @@ body {
     align-items: flex-start;
     width: 100%;
     gap: 2px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .item-detail {
@@ -342,6 +364,7 @@ body {
     gap: 4px;
     align-items: flex-start;
     width: 100%;
+    min-width: 0;
 }
 
 .detail-label {
@@ -354,6 +377,7 @@ body {
     color: #424569;
     font-size: 12px;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .detail-value {
@@ -366,6 +390,10 @@ body {
     font-weight: 400;
     font-size: 12px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
 }
 
 /* Value Type Styles */
@@ -395,6 +423,9 @@ body {
     color: #8085aa;
     font-size: 12px;
     width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .item-element .caret-icon {
@@ -446,6 +477,370 @@ body {
 }
 
 /* ==========================================================================
+   Settings Page Styles
+   ========================================================================== */
+
+/* Settings Content Area */
+.settings-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    background-color: #ffffff;
+    overflow-y: auto;
+}
+
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Settings Section Header */
+.settings-section-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.settings-section-title {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 16px;
+    color: #424569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Variables Container */
+.variables-container {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* JSON Editor Container */
+.json-editor {
+    position: relative;
+    width: 100%;
+    height: 290px;
+    background-color: #eff0f5;
+    border-radius: 12px;
+    display: flex;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Editor Gutter (Line Numbers) */
+.editor-gutter {
+    background-color: #e8e9f0;
+    border-right: 1px solid #dcdee6;
+    flex-shrink: 0;
+    width: 44px;
+    overflow: hidden;
+}
+
+.line-numbers {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 17px;
+    color: #8085aa;
+    text-align: right;
+    padding: 16px 8px 16px 4px;
+    user-select: none;
+    white-space: pre;
+}
+
+/* Editor Content Area */
+.editor-content {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Variables Textarea (now positioned within editor) */
+.variables-textarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    padding: 16px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 17px;
+    color: #424569;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    z-index: 2;
+    overflow: auto;
+    white-space: pre;
+    word-wrap: normal;
+}
+
+.variables-textarea::placeholder {
+    color: #8085aa;
+    opacity: 0.7;
+}
+
+/* Syntax Overlay */
+.syntax-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 17px;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+    white-space: pre;
+    word-wrap: normal;
+    color: transparent;
+    box-sizing: border-box;
+}
+
+/* JSON Syntax Highlighting */
+.json-key {
+    color: #6366f1;
+    font-weight: 500;
+}
+
+.json-string {
+    color: #059669;
+}
+
+.json-number {
+    color: #dc2626;
+}
+
+.json-boolean {
+    color: #7c3aed;
+    font-weight: 500;
+}
+
+.json-null {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.json-bracket {
+    color: #374151;
+    font-weight: 600;
+}
+
+.json-comma {
+    color: #374151;
+}
+
+/* Validation Status */
+.validation-status {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.validation-status.valid {
+    background-color: #dcfce7;
+    color: #166534;
+    opacity: 1;
+}
+
+.validation-status.invalid {
+    background-color: #fee2e2;
+    color: #dc2626;
+    opacity: 1;
+}
+
+/* Focus States */
+.json-editor:focus-within {
+    background-color: #e8e9f0;
+}
+
+.json-editor:focus-within .editor-gutter {
+    background-color: #dcdee6;
+}
+
+.json-editor:focus-within .line-numbers {
+    color: #6b6f8d;
+}
+
+/* Error Highlighting */
+.json-editor.error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+}
+
+.json-editor.error .editor-gutter {
+    background-color: #fed7d7;
+}
+
+.json-editor.error .variables-textarea {
+    color: #c33;
+}
+
+/* File Operations */
+.file-operations {
+    padding: 8px 0;
+    width: 100%;
+}
+
+.file-buttons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Settings Buttons */
+.settings-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 0;
+    width: 100%;
+}
+
+/* Button Base Styles */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    text-transform: capitalize;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    min-height: 44px;
+}
+
+/* Primary Button (Save Changes) */
+.btn-primary {
+    background-color: #f5e556;
+    color: #424569;
+}
+
+.btn-primary:hover {
+    background-color: #f0df4a;
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    background-color: #ebd93e;
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    background-color: #f8f1a8;
+    color: #6b6f8d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Secondary Button (Cancel) */
+.btn-secondary {
+    background-color: #eff0f5;
+    color: #424569;
+}
+
+.btn-secondary:hover {
+    background-color: #e5e7ed;
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    background-color: #dcdee6;
+    transform: translateY(0);
+}
+
+/* File Operation Buttons */
+.btn-file {
+    background-color: #ffffff;
+    border: 1px solid #eff0f5;
+    color: #424569;
+    flex: 1;
+    font-size: 12px;
+    min-height: 36px;
+    padding: 8px 12px;
+}
+
+.btn-file:hover {
+    background-color: #f8f9fa;
+    border-color: #e5e7ed;
+    transform: translateY(-1px);
+}
+
+.btn-file:active {
+    background-color: #f0f1f3;
+    transform: translateY(0);
+}
+
+/* Header Settings Active State */
+.header-settings-active {
+    opacity: 1;
+    background-color: #f5e556;
+    border-radius: 100%;
+    padding: 0;
+}
+
+.header-settings-active:hover {
+    opacity: 1;
+    background-color: #f0df4a;
+}
+
+/* Loading and Error States */
+.variables-textarea.loading {
+    background-color: #f8f9fa;
+    color: #8085aa;
+    cursor: wait;
+}
+
+.variables-textarea.error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+}
+
+.error-message {
+    background-color: #fee;
+    color: #c33;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* ==========================================================================
    Responsiveness
    ========================================================================== */
 @media (max-width: 400px) {
@@ -458,5 +853,50 @@ body {
     .header,
     .section {
         width: 100%;
+    }
+}
+
+/* Settings responsive adjustments */
+@media (max-height: 500px) {
+    .json-editor {
+        min-height: 200px;
+    }
+    
+    .settings-content {
+        padding: 12px;
+    }
+    
+    .settings-buttons {
+        padding: 12px 0;
+    }
+}
+
+@media (max-width: 380px) {
+    .editor-gutter {
+        width: 36px;
+    }
+    
+    .line-numbers {
+        padding: 16px 6px 16px 4px;
+        font-size: 11px;
+    }
+    
+    .variables-textarea {
+        font-size: 11px;
+        line-height: 16px;
+        padding: 12px;
+    }
+    
+    .syntax-overlay {
+        font-size: 11px;
+        line-height: 16px;
+        padding: 12px;
+    }
+    
+    .validation-status {
+        font-size: 10px;
+        padding: 3px 6px;
+        bottom: 6px;
+        right: 8px;
     }
 }

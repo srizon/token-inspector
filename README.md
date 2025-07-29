@@ -98,6 +98,14 @@ Token Inspector is built for speed and efficiency:
 
 ## Changelog
 
+### Version 2.4
+- **Settings Interface**: Added comprehensive settings page with JSON editor for managing flagged variables.
+- **Variable Management**: Users can now view, edit, save, download, and upload flagged variables through an intuitive interface.
+- **JSON Editor Features**: Syntax highlighting, line numbers, validation, auto-formatting, and error handling for flagged variables editing.
+- **Chrome Storage Integration**: Flagged variables are now stored in Chrome's local storage for persistence across sessions.
+- **UI Enhancements**: Added settings and scan icons to header, improved navigation between popup and settings pages.
+- **File Operations**: Download and upload functionality for flagged variables JSON files with validation.
+
 ### Version 2.3
 - **CSS Value Extraction**: Fixed regex to prevent capturing closing braces `}` in property values, improving accuracy and eliminating false positives.
 

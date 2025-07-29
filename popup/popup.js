@@ -675,6 +675,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    /**
+     * Add click event listener for the settings button
+     * Navigates to the settings page
+     */
+    const settingsButton = document.querySelector('.header-settings');
+    if (settingsButton) {
+        settingsButton.addEventListener('click', () => {
+            window.location.href = 'settings.html';
+        });
+    }
+
 
 
     // Wait for Lottie library to be available

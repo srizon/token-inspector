@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Token Inspector",
-  "version": "2.0",
+  "version": "2.4",
   "description": "A Chrome extension to inspect and analyze design tokens and hard-coded CSS values on webpages.",
   "icons": {
     "16": "icons/icon16.png",
@@ -12,7 +12,8 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "host_permissions": [
     "file://*",

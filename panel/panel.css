@@ -1,5 +1,10 @@
-/* DevTools Panel Specific Styles */
-/* Simplified Code Editor Design - mimics VS Code's DevTools appearance */
+/* ==========================================================================
+   DevTools Panel Styles
+   ========================================================================== */
+
+/* ==========================================================================
+   Base Styles
+   ========================================================================== */
 body {
     width: auto !important;
     height: 100vh !important;
@@ -13,7 +18,9 @@ body {
     padding: 0;
 }
 
-/* Main application container */
+/* ==========================================================================
+   Layout Components
+   ========================================================================== */
 .app-container {
     height: 100vh !important;
     border: none !important;
@@ -23,7 +30,6 @@ body {
     flex-direction: column;
 }
 
-/* Results container with scrollable content */
 .results-container {
     height: calc(100vh - 120px) !important;
     background: #252526;
@@ -31,7 +37,9 @@ body {
     overflow-y: auto;
 }
 
-/* Simplified header for DevTools context */
+/* ==========================================================================
+   Header Section
+   ========================================================================== */
 .header {
     padding: 8px 16px;
     background: #2d2d30;
@@ -43,21 +51,21 @@ body {
     box-sizing: border-box;
 }
 
-/* Header content layout */
 .header-content {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-/* Header buttons container */
 .header-buttons {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-/* Logo styling */
+/* ==========================================================================
+   Logo and Branding
+   ========================================================================== */
 .logo {
     display: flex;
     align-items: center;
@@ -79,7 +87,6 @@ body {
     height: 16px;
 }
 
-/* Panel title styling */
 h1 {
     font-size: 14px;
     font-weight: 600;
@@ -87,7 +94,9 @@ h1 {
     color: #cccccc;
 }
 
-/* Scan button styling for DevTools context */
+/* ==========================================================================
+   Button Components
+   ========================================================================== */
 .scan-button {
     background: #0e639c;
     color: #ffffff;
@@ -110,7 +119,6 @@ h1 {
     cursor: not-allowed;
 }
 
-/* Clear button styling for DevTools context */
 .clear-button {
     background: #424242;
     color: #cccccc;
@@ -133,7 +141,9 @@ h1 {
     background: #3c3c3c;
 }
 
-/* Simplified category tabs for DevTools */
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
 .category-tabs {
     background: #2d2d30;
     border-bottom: 1px solid #3c3c3c;
@@ -205,7 +215,9 @@ h1 {
     color: #cccccc;
 }
 
-/* Simplified scanner state */
+/* ==========================================================================
+   Scanner State
+   ========================================================================== */
 .scanner-state {
     background: #252526;
     border: 1px solid #3c3c3c;
@@ -241,7 +253,9 @@ h1 {
     100% { transform: rotate(360deg); }
 }
 
-/* Clean results styling */
+/* ==========================================================================
+   Results Display
+   ========================================================================== */
 .results-container {
     padding: 0;
     background: #252526;
@@ -293,7 +307,9 @@ h1 {
     margin: 0;
 }
 
-/* Clean multi-line issue cards */
+/* ==========================================================================
+   Issue Cards
+   ========================================================================== */
 .issue-card {
     margin: 0;
     padding: 8px 16px;
@@ -318,7 +334,9 @@ h1 {
     background: #3c3c3c;
 }
 
-/* CSS-like syntax highlighting */
+/* ==========================================================================
+   Syntax Highlighting
+   ========================================================================== */
 .issue-selector {
     color: #dcdcaa;
     font-weight: 400;
@@ -353,7 +371,9 @@ h1 {
     margin-right: 2px;
 }
 
-/* Editable value styles */
+/* ==========================================================================
+   Editable Values
+   ========================================================================== */
 .issue-value-editable {
     color: #ce9178;
     font-weight: 400;
@@ -377,7 +397,6 @@ h1 {
     border-radius: 4px;
     font-family: inherit;
     font-size: inherit;
-    /* min-width: 80px; */
 }
 
 .edit-controls {
@@ -440,7 +459,9 @@ h1 {
     color: #f44747;
 }
 
-/* Simplified no results message */
+/* ==========================================================================
+   No Results State
+   ========================================================================== */
 .no-results {
     display: flex;
     align-items: center;
@@ -479,7 +500,9 @@ h1 {
     margin: 0;
 }
 
-/* VS Code inspired scrollbar */
+/* ==========================================================================
+   Scrollbar Styles
+   ========================================================================== */
 .results-container::-webkit-scrollbar {
     width: 14px;
 }
@@ -502,7 +525,9 @@ h1 {
     background: #1e1e1e;
 }
 
-/* Responsive adjustments */
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
 @media (max-width: 768px) {
     .header {
         padding: 6px 12px;
@@ -517,7 +542,9 @@ h1 {
     }
 }
 
-/* VS Code color scheme variables for consistency */
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
 :root {
     --vscode-bg: #1e1e1e;
     --vscode-bg-secondary: #252526;

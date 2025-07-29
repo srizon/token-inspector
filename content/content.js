@@ -868,12 +868,16 @@
                         // This is a CSS variable
                         addVarUsage(element, property);
                         
-                        console.log('Token Inspector: Checking variable:', value, 'against flagged list:', flaggedVariables);
+                        console.log('Token Inspector: 🔍 Checking variable:', value);
+                        console.log('Token Inspector: 📋 Flagged list has', flaggedVariables.length, 'items:', flaggedVariables);
+                        
                         if (flaggedVariables.includes(value)) {
-                            console.log('Token Inspector: MATCH FOUND! Flagging variable:', value);
+                            console.log('Token Inspector: 🚩 MATCH FOUND! Flagging variable:', value);
                             shouldFlag = true;
                             category = propertyInfo.category; // Use the property's natural category instead of "Flagged Variables"
                             flaggedValue = value;
+                        } else {
+                            console.log('Token Inspector: ✅ Variable', value, 'is not in flagged list');
                         }
                     } else {
                         // This is a potential hardcoded value
@@ -1064,17 +1068,45 @@
                 return window.dsLint.results;
             }
 
-            // Fetch the list of flagged variables
-            fetch(chrome.runtime.getURL('flagged-variables.json'))
-                .then(response => response.json())
-                .then(data => {
-                    flaggedVariables = data;
+            // Load flagged variables from chrome storage first, then fallback to JSON file
+            console.log('Token Inspector: Starting to load flagged variables...');
+            chrome.storage.local.get(['flagged-variables'], (result) => {
+                console.log('Token Inspector: Chrome storage result:', result);
+                
+                if (chrome.runtime.lastError) {
+                    console.error('Token Inspector: Chrome storage error:', chrome.runtime.lastError);
+                    loadFromJsonFallback();
+                    return;
+                }
+                
+                if (result['flagged-variables'] && Array.isArray(result['flagged-variables'])) {
+                    // Use saved variables from chrome storage
+                    flaggedVariables = result['flagged-variables'];
+                    console.log('Token Inspector: ✅ Loaded flagged variables from storage:', flaggedVariables.length, 'items');
+                    console.log('Token Inspector: Storage variables:', flaggedVariables);
                     resolve({ findAndMarkElementsUsingVars, findHardcodedValues });
-                })
-                .catch(err => {
-                    console.error('Token Inspector: Could not fetch or parse flagged-variables.json', err);
-                    resolve({ findAndMarkElementsUsingVars, findHardcodedValues }); // Resolve anyway so the scan doesn't hang
-                });
+                } else {
+                    console.log('Token Inspector: No custom flagged variables found in storage, falling back to JSON file');
+                    loadFromJsonFallback();
+                }
+            });
+            
+            function loadFromJsonFallback() {
+                fetch(chrome.runtime.getURL('flagged-variables.json'))
+                    .then(response => response.json())
+                    .then(data => {
+                        flaggedVariables = data;
+                        console.log('Token Inspector: ✅ Loaded flagged variables from JSON file:', flaggedVariables.length, 'items');
+                        console.log('Token Inspector: JSON variables:', flaggedVariables);
+                        resolve({ findAndMarkElementsUsingVars, findHardcodedValues });
+                    })
+                    .catch(err => {
+                        console.error('Token Inspector: Could not fetch or parse flagged-variables.json', err);
+                        flaggedVariables = []; // Set empty array as fallback
+                        console.log('Token Inspector: ⚠️ Using empty flagged variables array as fallback');
+                        resolve({ findAndMarkElementsUsingVars, findHardcodedValues }); // Resolve anyway so the scan doesn't hang
+                    });
+            }
         });
     }
 

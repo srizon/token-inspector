@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Inspector - Settings</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <!-- Main settings container -->
+    <div class="popup-ui">
+        <!-- Header section with logo, title, and buttons -->
+        <div class="header">
+            <!-- Extension logo/icon -->
+            <div class="header-icon">
+                <img src="../icons/icon32.png" alt="Token Inspector" width="24" height="24">
+            </div>
+            <!-- Settings title -->
+            <div class="header-title">Settings</div>
+            <!-- Header buttons -->
+            <div class="header-buttons">
+                <!-- Settings button (current page) -->
+                <div class="header-settings header-settings-active">
+                    <img src="../assets/icon-settings.svg" alt="Settings" width="24" height="24">
+                </div>
+                <!-- Scan button -->
+                <div class="header-scan">
+                    <img src="../assets/icon-scan.svg" alt="Scan" width="24" height="24">
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings content -->
+        <div class="settings-content">
+            <!-- Flagged Variables section -->
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h2 class="settings-section-title">Flagged Variables</h2>
+                </div>
+                
+                <!-- Variables textarea -->
+                <div class="variables-container">
+                    <div class="json-editor" id="json-editor">
+                        <div class="editor-gutter">
+                            <div class="line-numbers" id="line-numbers"></div>
+                        </div>
+                        <div class="editor-content">
+                            <textarea 
+                                id="flagged-variables-textarea" 
+                                class="variables-textarea"
+                                placeholder="Loading variables..."
+                                spellcheck="false"
+                                wrap="off"
+                            ></textarea>
+                            <div class="syntax-overlay" id="syntax-overlay"></div>
+                        </div>
+                        <div class="validation-status" id="validation-status"></div>
+                    </div>
+                </div>
+                
+                <!-- File operations -->
+                <div class="file-operations">
+                    <div class="file-buttons">
+                        <button id="download-btn" class="btn btn-file">
+                            📥 Download JSON
+                        </button>
+                        <button id="upload-btn" class="btn btn-file">
+                            📤 Upload JSON
+                        </button>
+                        <input type="file" id="file-input" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="settings-buttons">
+                    <button id="save-changes-btn" class="btn btn-primary">
+                        Save Changes
+                    </button>
+                    <button id="cancel-btn" class="btn btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="settings.js"></script>
+</body>
+</html>
