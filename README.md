@@ -42,7 +42,9 @@ token-inspector/
 ├── popup/                     # Popup UI and logic
 │   ├── popup.html
 │   ├── popup.js
-│   └── popup.css
+│   ├── popup.css
+│   ├── settings.html          # Settings page for managing flagged variables
+│   └── settings.js            # Settings page logic and JSON editor
 ├── content/                   # Content script for page analysis
 │   └── content.js
 ├── shared/                    # Shared scanning logic
@@ -59,7 +61,10 @@ token-inspector/
 │   ├── icon-text.svg          # Typography category icon
 │   ├── icon-spacing.svg       # Spacing category icon
 │   ├── icon-border.svg        # Border category icon
-│   └── icon-caret.svg         # Caret icon for navigation
+│   ├── icon-caret.svg         # Caret icon for navigation
+│   ├── icon-scan.svg          # Scan button icon
+│   ├── icon-settings.svg      # Settings button icon
+│   └── project-cover.jpg      # Project cover image
 ├── icons/                     # Extension icons
 │   ├── icon16.png
 │   ├── icon32.png
