@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function updateButtonStates() {
         saveBtn.disabled = !hasUnsavedChanges || textarea.value.trim() === '';
-        cancelBtn.disabled = !hasUnsavedChanges;
+        cancelBtn.disabled = false; // Cancel button should always be enabled
     }
     
     /**
@@ -543,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     saveBtn.addEventListener('click', saveFlaggedVariables);
-    cancelBtn.addEventListener('click', cancelChanges);
+    cancelBtn.addEventListener('click', navigateToPopup);
     headerScan.addEventListener('click', navigateToPopup);
     downloadBtn.addEventListener('click', downloadFlaggedVariables);
     uploadBtn.addEventListener('click', () => fileInput.click());

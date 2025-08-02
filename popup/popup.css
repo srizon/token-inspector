@@ -69,8 +69,8 @@ body {
 
 
 .header-scan {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
     transition: opacity 0.2s ease;
 }
@@ -84,8 +84,8 @@ body {
 }
 
 .header-settings {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
     transition: opacity 0.2s ease;
 }
@@ -345,8 +345,6 @@ body {
     font-size: 14px;
     width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .item-details {
@@ -393,7 +391,6 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
-    flex: 1;
 }
 
 /* Value Type Styles */
@@ -423,9 +420,6 @@ body {
     color: #8085aa;
     font-size: 12px;
     width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .item-element .caret-icon {

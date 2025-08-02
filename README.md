@@ -103,6 +103,10 @@ Token Inspector is built for speed and efficiency:
 
 ## Changelog
 
+### Version 2.5
+- **Bug Fix**: Fixed cancel button in settings page not working - now properly navigates back to popup interface.
+- **UI Improvement**: Cancel button is now always enabled, allowing users to return to popup regardless of unsaved changes state.
+
 ### Version 2.4
 - **Settings Interface**: Added comprehensive settings page with JSON editor for managing flagged variables.
 - **Variable Management**: Users can now view, edit, save, download, and upload flagged variables through an intuitive interface.
